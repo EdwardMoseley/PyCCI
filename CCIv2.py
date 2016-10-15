@@ -352,8 +352,8 @@ class odict(_odict, dict):
 
 
 
-class App: #I'm not typing what goes in this class, this way I can avoid issues with App(Frame), etc. DUCKTYPE!
-    def __init__(self, master):# Note: I don't know what master is
+class App:#No need for arguments
+    def __init__(self, master):
         self.frame = Frame(master)
         self.frame.pack()
         self.master = master
