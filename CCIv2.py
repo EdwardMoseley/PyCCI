@@ -358,11 +358,22 @@ class App:#No need for arguments
         self.frame.pack()
         self.master = master
         master.title("PyCCI")
-        self.indicatorvalues = dict(odict([("None", 0), ("Non-Adherence", 0), ("Obesity", 0),
-        ("Developmental Delay/Retardation", 0), ("Advanced Heart Disease", 0), ("Advanced Lung Disease", 0),
-        ("Schizophrenia and \nother Psychiatric Disorders", 0), ("Alcohol Abuse", 0), ("Other Substance Abuse", 0),
-        ("Chronic Pain/Fibromyalgia", 0), ("Chronic Neurological/Dystrophies", 0),  ("Advanced Cancer", 0), ("Depression", 0),
-        ("Dementia", 0), ("Unsure", 0)]).items()) #add or take away indicators here and also in writer()
+        self.indicatorvalues = dict(odict([("None", 0),
+                                           ("Non-Adherence", 0),
+                                           ("Obesity", 0),
+                                           ("Developmental Delay/Retardation", 0),
+                                           ("Advanced Heart Disease", 0),
+                                           ("Advanced Lung Disease", 0),
+                                           ("Schizophrenia and \nother Psychiatric Disorders", 0),
+                                           ("Alcohol Abuse", 0),
+                                           ("Other Substance Abuse", 0),
+                                           ("Chronic Pain/Fibromyalgia", 0),
+                                           ("Chronic Neurological/Dystrophies", 0),
+                                           ("Advanced Cancer", 0),
+                                           ("Depression", 0),
+                                           ("Dementia", 0),
+                                           ("Unsure", 0)]).items())
+                                           #add or take away indicators here and also in writer()
         self.path = 1
         self.total = 0
         self.rowtotal = 0
@@ -382,6 +393,9 @@ class App:#No need for arguments
         self.body()
         self.library()
 
+    ## ###
+    ## openfile() will
+    ## ###
     def openfile(self):
         self.path += -1 ### Here do the try method!
         if self.path == 0:
@@ -407,6 +421,7 @@ class App:#No need for arguments
                 self.rowtotal = len(self.subjID)
                 self.ptnumber.config(text = str(self.total))
                 self.pttotal.config(text = str(self.rowtotal))
+                #Hide subject ID from annotator
                 #self.ptsubID.config(text = str(self.subjID[self.total]))
                 self.pthAdm.config(text = str(self.hAdm[self.total]))
                 self.ptnotetype.config(text = str(self.notetype[self.total]))
@@ -414,6 +429,8 @@ class App:#No need for arguments
                 self.pttext.delete(1.0, END)
                 self.pttext.insert(END, self.dSum[self.total])
                 self.pttext.config(state=DISABLED)
+
+            #
             if os.path.isfile(self.newfile) == True:
                 with open(self.newfile, 'r+') as self.newf:
                     self.storage = csv.reader(self.newf)
@@ -424,6 +441,10 @@ class App:#No need for arguments
             else:
                 self.crane(0)
 
+
+    ## ###
+    ## crane calls writer() and resetbuttons()
+    ## ###
     def crane(self, x): ## This is the incrementer function
         if self.path == 0:
             self.writer()
@@ -444,19 +465,42 @@ class App:#No need for arguments
         self.pttext.config(state=DISABLED)
         self.resetbuttons()
 
+    ## ###
+    ## writer() is called every time "Next" or "Back" are pressed
+    ## writer() will create a results file if one does not exist
+    ## writer() will pass if no indicators are ticked
+    ## writer() will write to results file if any indicator is ticked
+    ## ###
 
     def writer(self):
+        #If the file does not exist, add the header
         if os.path.isfile(self.newfile) == False:
             with open(self.newfile, 'w') as csvfile:
                 datawriter = csv.writer(csvfile, delimiter=',')
-                datawriter.writerow(['Subject ID'] + ['Hospital Admission ID'] + ['ICU ID'] + ['Note Type']
-                                    + ['Chart time'] + ['Category'] + ['Real time']
-                                    + ['None'] + ['Obesity'] + ['Non-Adherence'] + ['Developmental Delay/Retardation']
-                                    + ['Advanced Heart Disease'] + ['Advanced Lung Disease']
+                datawriter.writerow(['Subject ID']
+                                    + ['Hospital Admission ID']
+                                    + ['ICU ID']
+                                    + ['Note Type']
+                                    + ['Chart time']
+                                    + ['Category']
+                                    + ['Real time']
+                                    + ['None']
+                                    + ['Obesity']
+                                    + ['Non-Adherence']
+                                    + ['Developmental Delay/Retardation']
+                                    + ['Advanced Heart Disease']
+                                    + ['Advanced Lung Disease']
                                     + ['Schizophrenia and other Psychiatric Disorders']
-                                    + ['Alcohol Abuse'] + ['Other Substance Abuse'] + ['Chronic Pain/Fibromyalgia']
+                                    + ['Alcohol Abuse']
+                                    + ['Other Substance Abuse']
+                                    + ['Chronic Pain/Fibromyalgia']
                                     + ['Chronic Neurological/Dystrophies']
-                                    + ['Advanced Cancer'] + ['Depression'] + ['Dementia'] + ['Unsure'])
+                                    + ['Advanced Cancer']
+                                    + ['Depression']
+                                    + ['Dementia']
+                                    + ['Unsure']
+                                    + ['Reason'])
+        #If no indicator is ticked, pass
         else:
             if bool(self.indicatorvalues['None'].get()) == False \
            + bool(self.indicatorvalues["Obesity"].get()) == False \
@@ -472,7 +516,9 @@ class App:#No need for arguments
            + bool(self.indicatorvalues['Advanced Cancer'].get()) == False \
            + bool(self.indicatorvalues['Depression'].get()) == False \
            + bool(self.indicatorvalues['Dementia'].get()) == False \
-           + bool(self.indicatorvalues['Unsure'].get()) == False: pass
+           + bool(self.indicatorvalues['Unsure'].get()) == False \
+           + bool(self.unsureText.get() == "Reason for Unsure here.") == True: pass
+            #If an indicator has been ticked, write results
             else:
                with open(self.newfile, 'a') as csvfile:
                 datawriter = csv.writer(csvfile, delimiter=',')
@@ -497,25 +543,50 @@ class App:#No need for arguments
                                 + [str(self.indicatorvalues['Advanced Cancer'].get())]
                                 + [str(self.indicatorvalues['Depression'].get())]
                                 + [str(self.indicatorvalues['Dementia'].get())]
-                                + [str(self.indicatorvalues['Unsure'].get())])
+                                + [str(self.indicatorvalues['Unsure'].get())]
+                                + [str(self.unsureReason.get())])
+
 #                print('\n' + str(self.hAdm[self.total]) + str(self.dSum[self.total] + '\n' + str(self.indicatorvalues['Unsure'].get())))
 
-            #Columns 1:x are: Subject ID, Hadm_ID, ICUStay_ID, NOTE TYPE, Then sequences, then binary data
-
+                #Columns 1:x are: Subject ID, Hadm_ID, ICUStay_ID, NOTE TYPE, Then sequences, then binary data
     def library(self):
+        ## ###
+        ## library() will create the checkbuttons and text entry box
+        ## ###
+        self.unsureReason = StringVar()
+        self.unsureText = Entry(self.checkframe, textvariable = self.unsureReason)
+        self.unsureReason.set("Reason for Unsure here.")
+        self.unsureText.pack(anchor = W, pady = 5)
+
         for machine in self.indicatorvalues:
             myvar = IntVar()
             myvar.set(self.indicatorvalues[machine])
             self.indicatorvalues[machine] = myvar
-            l = Checkbutton(self.checkframe, text=machine, variable=myvar, onvalue=1, offvalue=0, height=1, pady=5, justify = LEFT)
+            l = Checkbutton(self.checkframe,
+                            text=machine,
+                            variable=myvar,
+                            onvalue=1,
+                            offvalue=0,
+                            height=1,
+                            pady=5,
+                            justify = LEFT)
             l.pack(anchor = W)
 
+
+        #self.unsureText.delete(0, END)
+
+        #self.unsureText.insert(0, "Reason for Unsure here.")
+
+    ## ###
+    ##
+    ## ###
     def resetbuttons(self):
+        self.unsureReason.set("Reason for Unsure here.")
         for machine in self.indicatorvalues:
             self.indicatorvalues[machine].set(0)
 
 
-    ##Body
+        ##Body
     def body(self):
         self.k1 = PanedWindow(self.master,
                               height=650,
@@ -530,7 +601,7 @@ class App:#No need for arguments
                                   size = 15)
         self.h3font = tkFont.Font(size = 11)
 
-    #Title
+        #Title
         self.title = PanedWindow(self.k1)
         self.k1.add(self.title, padx = 10, pady = 10)
 
@@ -692,7 +763,7 @@ class App:#No need for arguments
                               command = lambda: self.crane(1)) #Argument is 1, increment
         self.button2.grid(row = 0, column = 2, padx = 2, pady = 2)
 
-    #Scrollbar!
+        #Scrollbar!
         self.ptscroll = Scrollbar(self.ptframe)
         self.ptscroll.pack(side = RIGHT, fill = Y)
         self.pttext = Text(self.ptframe,
@@ -730,6 +801,7 @@ class App:#No need for arguments
                                      pady = 0,
                                      borderwidth=0)
         self.checkframe.pack()
+
 
 
 root = Tk()
