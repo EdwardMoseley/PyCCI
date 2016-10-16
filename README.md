@@ -5,6 +5,7 @@ Save CCIv2.py to your desktop.
 You have to use your terminal to run the program. You can use command+space to open spotlight, and there type in "terminal" and hit enter.
 
 We're greeted by this guy:
+
 ![alt text](https://github.com/EdwardMoseley/PyCCI/blob/master/images/img1.png "Terminal Window")
 
 Let's run a few quick checks.
