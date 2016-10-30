@@ -387,7 +387,7 @@ class App:#No need for arguments
         self.chartID = []
         self.category = []
         self.notetype = []
-        self.storage = [] #Ned put this here to hold our data
+        self.storage = []
         self.SID = []
         self.mem = 0
         self.body()
@@ -403,6 +403,7 @@ class App:#No need for arguments
             self.newfile = self.file[:-4] + "ResultsCCIv2.csv"
             with open(self.file, 'r+') as self.f:
                 self.mycsv = csv.reader(self.f)
+                #Grab the data and hold it in memory
                 for self.row in self.mycsv: ## For loop giving cell all over its values
                     self.hospSeq.append(self.row[4])
                     self.icuSeq.append(self.row[5])
@@ -413,6 +414,8 @@ class App:#No need for arguments
                     self.category.append(self.row[4])
                     self.notetype.append(self.row[5])
                     self.dSum.append(self.row[7])
+
+
                 self.pttext.config(state=NORMAL)
                 self.pttext.delete(1.0, END)
                 self.pttext.insert(END, self.dSum[self.total])
@@ -445,6 +448,7 @@ class App:#No need for arguments
     ## ###
     ## crane calls writer() and resetbuttons()
     ## ###
+
     def crane(self, x): ## This is the incrementer function
         if self.path == 0:
             self.writer()
@@ -573,12 +577,8 @@ class App:#No need for arguments
             l.pack(anchor = W)
 
 
-        #self.unsureText.delete(0, END)
-
-        #self.unsureText.insert(0, "Reason for Unsure here.")
-
     ## ###
-    ##
+    ## resetbuttons()
     ## ###
     def resetbuttons(self):
         self.unsureReason.set("Reason for Unsure here.")
@@ -589,7 +589,7 @@ class App:#No need for arguments
         ##Body
     def body(self):
         self.k1 = PanedWindow(self.master,
-                              height=650,
+                              height=700,
                               width=900,
                               orient = VERTICAL)
         self.k1.pack(fill=BOTH, expand = 1)
@@ -607,7 +607,17 @@ class App:#No need for arguments
 
         self.openbutton = Button(self.title,
                                  text = "Open CSV", command = self.openfile, padx=15)
-        self.openbutton.place(anchor = W, x = 20, rely = 0.50)
+        self.openbutton.place(anchor = W, x = 20, rely = 0.25)
+
+
+        ## ###
+        ##
+        self.reviewButton = Button(self.title, text = "Review CSV", command = self.openfile, padx=25)
+        self.reviewButton.place(anchor = W, x = 20, rely = 0.75)
+        ##
+        ## ###
+
+
 
         self.photo = """
         R0lGODlhRgAwAPf/AOb58//ylf/JN//PPv/cZjt+oWfiuD6IsHipw//jasba5f/gUjuApP/mWJvs0FbLqj6GrP/eUFjOrKfF1v/zyFPGqFTIqS5
@@ -694,7 +704,7 @@ class App:#No need for arguments
                     pady = 25,
                     stretch = "never")
 
-    #Left pane patient note text frame doo-diddly
+        #Left pane patient note text frame doo-diddly
         self.ptframe = LabelFrame(self.leftpane,
                                   text = "Medical Record",
                                   font = self.boldfont,
@@ -782,9 +792,9 @@ class App:#No need for arguments
         self.pttext.config(state=NORMAL)
         self.pttext.delete(1.0, END)
         self.pttext.insert(END, "Please use the ''Open CSV'' button to open the .csv file provided to you, "
-                                + "for example:\n'dischargeSummaries29JUN15.csv'\n"
+                                + "for example:\n'dischargeSummaries29JUN16.csv'\n"
                                 + "This will create a 'results' file within the same directory, in this "
-                                + "case the results file would be:\n 'dischargeSummaries29JUN15Results.csv'")
+                                + "case the results file would be:\n 'dischargeSummaries29JUN16ResultsCCIv3.csv'")
 
 
 
@@ -816,9 +826,10 @@ def about():
     Label(aboutfr, text='Important Information: This code was developed for use in Python versions >2.5 and < 3.0\n '
                         'with the use of the base Tkinter library and Tcl/Tk version 8.5.9\n \n'
                         'Development team: \n'
-                        'Project Manager: Edward Moseley \n'
                         'Front-end Developer: Kai-ou Tang \n'
-                        'Development Support: William Moseley', pady=150).pack()
+                        'Development Support: William Moseley\n'
+                        'Project Manager: Edward Moseley \n'
+                        , pady=150).pack()
 
 def info():
     infopop = Toplevel()
@@ -826,22 +837,11 @@ def info():
     infopop.geometry('400x300')
     infofr = Frame(infopop)
     infofr.pack()
-    Label(infofr, text='### Advanced heart and lung diseases ### \n'
-                        '-Consider only patients who are repeatedly hospitalized\n'
-                        'for their heart of lung problems (~2 or more times/yr)\n'
-                        'Lung diseases include sarcoidosis, pulmonary fibrosis \n'
-                        'pulmonary hypertension, COPD. Must require multiple hospital\n'
-                        'admissions to be considered "Advanced"\n'
-                        'Notes should explicitly state multiple admissions for heart/lung problem\n'
-                        '\n'
-                        '### Chronic Neurologic Diseases ###\n'
 
-                        '\n', pady=150).pack()
-
-### Menu stuff does not need to be part of the class
+### Menu does not need to be part of the class
 menubar = Menu(root)
 filemenu = Menu(menubar, tearoff=0)
-filemenu.add_command(label="Open CSV")#, command=openfile)
+#filemenu.add_command(label="Open CSV")#, command=openfile)
 menubar.add_cascade(label="File", menu=filemenu)
 helpmenu = Menu(menubar, tearoff=0)
 helpmenu.add_command(label="About", command=about)
