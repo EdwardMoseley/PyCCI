@@ -11,6 +11,7 @@ import copy
 import sys
 import functools
 
+
 class _Nil(object):
     """Q: it feels like using the class with "is" and "is not" instead of
     "==" and "!=" should be faster.
@@ -352,7 +353,9 @@ class odict(_odict, dict):
 
 
 
-class App:#No need for arguments
+
+
+class App:
     def __init__(self, master):
         self.frame = Frame(master)
         self.frame.pack()
@@ -378,8 +381,12 @@ class App:#No need for arguments
         self.total = 0
         self.rowtotal = 0
         self.count = 0 #Initialize count to zero and refer to it later in crane()   #S
+
+        self.header = []#Hold the header of the csv to grab indices of
+
         self.dSum = []
-        self.hospSeq = []
+        self.chartDate = []
+        self.realDate = []
         self.icuSeq = []
         self.subjID = []
         self.hAdm = []
@@ -396,53 +403,155 @@ class App:#No need for arguments
     ## ###
     ## openfile() will
     ## ###
-    def openfile(self):
-        self.path += -1 ### Here do the try method!
-        if self.path == 0:
-            self.file = tkFileDialog.askopenfilename()
-            self.newfile = self.file[:-4] + "ResultsCCIv2.csv"
-            with open(self.file, 'r+') as self.f:
-                self.mycsv = csv.reader(self.f)
-                #Grab the data and hold it in memory
-                for self.row in self.mycsv: ## For loop giving cell all over its values
-                    self.hospSeq.append(self.row[4])
-                    self.icuSeq.append(self.row[5])
-                    self.subjID.append(self.row[0])
-                    self.hAdm.append(self.row[1])
-                    self.icuID.append(self.row[2])
-                    self.chartID.append(self.row[3])
-                    self.category.append(self.row[4])
-                    self.notetype.append(self.row[5])
-                    self.dSum.append(self.row[7])
+
+    def openfile(self, buttonArg):
+        print(buttonArg)
+        if buttonArg == "Annotate":
+            self.path += -1
+            if self.path == 0:
+                self.file = tkFileDialog.askopenfilename()
+                self.newfile = self.file[:-4] + "ResultsCCIv3.csv"
+                with open(self.file, 'r+') as self.f:
+                    self.mycsv = csv.reader(self.f)
+                    #Grab the data and hold it in memory
+                    for self.row in self.mycsv: ## For loop giving cell all over its values
+                        if len(self.header) == 0:
+                            self.header = self.row
+                        try:
+                            self.chartDate.append(self.row[self.header.index("chartdate")])
+                        except Exception:
+                            self.chartDate.append("N/A")
+                            sys.exc_clear()
+                        try:
+                            self.chartDate.append(self.row[self.header.index("Chart.time")])
+                        except Exception:
+                            self.chartDate.append("N/A")
+                            sys.exc_clear()
+                        try:
+                            self.realDate.append(self.row[self.header.index("Real.time")])
+                        except Exception:
+                            sys.exc_clear()
+                        self.icuSeq.append(self.row[5])
+                        self.subjID.append(self.row[self.header.index("subject.id")])
+                        if "Hospital.Admission.ID" in self.header:
+                            self.hAdm.append(self.row[self.header.index("Hospital.Admission.ID")])
+                        else:
+                            try:
+                                self.hAdm.append(self.row[self.header.index("hadm.id")])
+                            except Exception:
+                                sys.exc_clear()
+                        self.icuID.append(self.row[2])#ICU ID is deprecated
+                        self.chartID.append(self.row[3])
+                        try:
+                            self.category.append(self.row[header.index("Category")])
+                        except Exception:
+                            self.category.append("N/A")
+                            sys.exc_clear()
+                        self.notetype.append(self.row[5])
+                        self.dSum.append(self.row[self.header.index("text")])
 
 
-                self.pttext.config(state=NORMAL)
-                self.pttext.delete(1.0, END)
-                self.pttext.insert(END, self.dSum[self.total])
-                self.pttext.config(state=DISABLED)
+                    self.pttext.config(state=NORMAL)
+                    self.pttext.delete(1.0, END)
+                    self.pttext.insert(END, self.dSum[self.total])
+                    self.pttext.config(state=DISABLED)
 
-                self.rowtotal = len(self.subjID)
-                self.ptnumber.config(text = str(self.total))
-                self.pttotal.config(text = str(self.rowtotal))
-                #Hide subject ID from annotator
-                #self.ptsubID.config(text = str(self.subjID[self.total]))
-                self.pthAdm.config(text = str(self.hAdm[self.total]))
-                self.ptnotetype.config(text = str(self.notetype[self.total]))
-                self.pttext.config(state=NORMAL)
-                self.pttext.delete(1.0, END)
-                self.pttext.insert(END, self.dSum[self.total])
-                self.pttext.config(state=DISABLED)
+                    self.rowtotal = len(self.subjID)
+                    self.ptnumber.config(text = str(self.total))
+                    self.pttotal.config(text = str(self.rowtotal))
+                    #Hide subject ID from annotator
+                    #self.ptsubID.config(text = str(self.subjID[self.total]))
+                    self.pthAdm.config(text = str(self.hAdm[self.total]))
+                    self.ptnotetype.config(text = str(self.notetype[self.total]))
+                    self.pttext.config(state=NORMAL)
+                    self.pttext.delete(1.0, END)
+                    self.pttext.insert(END, self.dSum[self.total])
+                    self.pttext.config(state=DISABLED)
 
-            #
-            if os.path.isfile(self.newfile) == True:
-                with open(self.newfile, 'r+') as self.newf:
-                    self.storage = csv.reader(self.newf)
-                    for line in self.storage:
-                        self.SID.append(line[0])
-                    self.mem = len(self.SID)
-                    self.crane(self.mem)
-            else:
-                self.crane(0)
+                #
+                if os.path.isfile(self.newfile) == True:
+                    with open(self.newfile, 'r+') as self.newf:
+                        self.storage = csv.reader(self.newf)
+                        for line in self.storage:
+                            self.SID.append(line[0])
+                        self.mem = len(self.SID)
+                        self.crane(self.mem)
+                else:
+                    self.crane(0)
+        elif buttonArg == "Review":
+            self.path += -1 ### Here do the try method!
+            if self.path == 0:
+                self.file = tkFileDialog.askopenfilename()
+                self.newfile = self.file[:-4] + "ResultsCCIv3.csv"
+                with open(self.file, 'r+') as self.f:
+                    self.mycsv = csv.reader(self.f)
+                    #Grab the data and hold it in memory
+                    for self.row in self.mycsv: ## For loop giving cell all over its values
+                        if len(self.header) == 0:
+                            self.header = self.row
+                        try:
+                            self.chartDate.append(self.row[self.header.index("chartdate")])
+                        except Exception:
+                            self.chartDate.append("N/A")
+                            sys.exc_clear()
+                        try:
+                            self.chartDate.append(self.row[self.header.index("Chart.time")])
+                        except Exception:
+                            self.chartDate.append("N/A")
+                            sys.exc_clear()
+                        try:
+                            self.realDate.append(self.row[self.header.index("Real.time")])
+                        except Exception:
+                            sys.exc_clear()
+                        self.icuSeq.append(self.row[5])
+                        self.subjID.append(self.row[self.header.index("subject.id")])
+                        if "Hospital.Admission.ID" in self.header:
+                            self.hAdm.append(self.row[self.header.index("Hospital.Admission.ID")])
+                        else:
+                            try:
+                                self.hAdm.append(self.row[self.header.index("hadm.id")])
+                            except Exception:
+                                sys.exc_clear()
+                        self.icuID.append(self.row[2])#ICU ID is deprecated
+                        self.chartID.append(self.row[3])
+                        try:
+                            self.category.append(self.row[header.index("Category")])
+                        except Exception:
+                            self.category.append("N/A")
+                            sys.exc_clear()
+                        self.notetype.append(self.row[5])
+                        self.dSum.append(self.row[self.header.index("text")])
+
+
+                    self.pttext.config(state=NORMAL)
+                    self.pttext.delete(1.0, END)
+                    self.pttext.insert(END, self.dSum[self.total])
+                    self.pttext.config(state=DISABLED)
+
+                    self.rowtotal = len(self.subjID)
+                    self.ptnumber.config(text = str(self.total))
+                    self.pttotal.config(text = str(self.rowtotal))
+                    #Hide subject ID from annotator
+                    #self.ptsubID.config(text = str(self.subjID[self.total]))
+                    self.pthAdm.config(text = str(self.hAdm[self.total]))
+                    self.ptnotetype.config(text = str(self.notetype[self.total]))
+                    self.pttext.config(state=NORMAL)
+                    self.pttext.delete(1.0, END)
+                    self.pttext.insert(END, self.dSum[self.total])
+                    self.pttext.config(state=DISABLED)
+
+                #Results file
+                if os.path.isfile(self.newfile) == True:
+                    with open(self.newfile, 'r+') as self.newf:
+                        self.storage = csv.reader(self.newf)
+                        for line in self.storage:
+                            self.SID.append(line[0])
+                        self.mem = len(self.SID)
+                        #If there is a results file, begin where it was left off
+                        self.crane(self.mem)
+                #In the absence of a results file, begin at the first observation
+                else:
+                    self.crane(0)
 
 
     ## ###
@@ -504,8 +613,9 @@ class App:#No need for arguments
                                     + ['Dementia']
                                     + ['Unsure']
                                     + ['Reason'])
-        #If no indicator is ticked, pass
+
         else:
+            #If no indicator is ticked, pass
             if bool(self.indicatorvalues['None'].get()) == False \
            + bool(self.indicatorvalues["Obesity"].get()) == False \
            + bool(self.indicatorvalues['Non-Adherence'].get()) == False \
@@ -520,9 +630,9 @@ class App:#No need for arguments
            + bool(self.indicatorvalues['Advanced Cancer'].get()) == False \
            + bool(self.indicatorvalues['Depression'].get()) == False \
            + bool(self.indicatorvalues['Dementia'].get()) == False \
-           + bool(self.indicatorvalues['Unsure'].get()) == False \
-           + bool(self.unsureText.get() == "Reason for Unsure here.") == True: pass
-            #If an indicator has been ticked, write results
+           + bool(self.indicatorvalues['Unsure'].get()) == False:
+                pass
+            #If an indicator is ticked
             else:
                with open(self.newfile, 'a') as csvfile:
                 datawriter = csv.writer(csvfile, delimiter=',')
@@ -552,11 +662,11 @@ class App:#No need for arguments
 
 #                print('\n' + str(self.hAdm[self.total]) + str(self.dSum[self.total] + '\n' + str(self.indicatorvalues['Unsure'].get())))
 
-                #Columns 1:x are: Subject ID, Hadm_ID, ICUStay_ID, NOTE TYPE, Then sequences, then binary data
     def library(self):
         ## ###
         ## library() will create the checkbuttons and text entry box
         ## ###
+
         self.unsureReason = StringVar()
         self.unsureText = Entry(self.checkframe, textvariable = self.unsureReason)
         self.unsureReason.set("Reason for Unsure here.")
@@ -606,13 +716,25 @@ class App:#No need for arguments
         self.k1.add(self.title, padx = 10, pady = 10)
 
         self.openbutton = Button(self.title,
-                                 text = "Open CSV", command = self.openfile, padx=15)
+                                 text = "Open CSV",
+                                 command = lambda: self.openfile("Annotate"),
+                                 padx=15)
         self.openbutton.place(anchor = W, x = 20, rely = 0.25)
+
+
+
+
+
+
 
 
         ## ###
         ##
-        self.reviewButton = Button(self.title, text = "Review CSV", command = self.openfile, padx=25)
+        self.reviewButton = Button(self.title,
+                                   text = "Review CSV",
+                                   command = lambda: self.openfile("Review"),
+                                   padx=25)
+
         self.reviewButton.place(anchor = W, x = 20, rely = 0.75)
         ##
         ## ###
@@ -737,10 +859,26 @@ class App:#No need for arguments
         self.ptframeinfo.pack()
         self.ptframeinfo.columnconfigure(1, minsize = 300)
 
+
+
+
+
+
+
+
+
         #self.ptsubID_ = Label(self.ptframeinfo, text = "Subject ID:", fg="dodgerblue4")
         #self.ptsubID_.grid(row = 1, column = 0, sticky = E)
         #self.ptsubID = Label(self.ptframeinfo, text = " ", font = self.h3font)
         #self.ptsubID.grid(row = 1, column = 1, sticky = W)
+
+        ##
+        # Reason for unsure
+        ##
+
+        #Create a frame for this?
+
+        #self.unsureText = Label(self.reviewerInfo, text = )
 
 
         self.phAdm_ = Label(self.ptframeinfo, text = "Hospital Admission ID:", fg="dodgerblue4")
@@ -756,7 +894,7 @@ class App:#No need for arguments
 
 
 
-    #Incrementer buttons (NOTE: changing from grid() to pack() does nothing to change their effects)
+        #Incrementer buttons
         self.buttonframe = Frame(self.ptframe)
         self.buttonframe.pack()
         self.buttonframe.place(relx=0.97, anchor = NE)
