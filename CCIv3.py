@@ -396,6 +396,7 @@ class App:
         self.notetype = []
         self.storage = []
         self.SID = []
+        self.row_id = []
         self.mem = 0
         self.body()
         self.library()
@@ -421,6 +422,11 @@ class App:
                             self.chartDate.append(self.row[self.header.index("chartdate")])
                         except Exception:
                             self.chartDate.append("N/A")
+                            sys.exc_clear()
+                        try:
+                            self.row_id.append(self.row[self.header.index("row_id")])
+                        except Exception:
+                            self.row_id.append("N/A")
                             sys.exc_clear()
                         try:
                             self.chartDate.append(self.row[self.header.index("Chart.time")])
@@ -479,7 +485,7 @@ class App:
                 else:
                     self.crane(0)
         elif buttonArg == "Review":
-            self.path += -1 ### Here do the try method!
+            self.path += -1
             if self.path == 0:
                 self.file = tkFileDialog.askopenfilename()
                 self.newfile = self.file[:-4] + "ResultsCCIv3.csv"
@@ -493,6 +499,11 @@ class App:
                             self.chartDate.append(self.row[self.header.index("chartdate")])
                         except Exception:
                             self.chartDate.append("N/A")
+                            sys.exc_clear()
+                        try:
+                            self.row_id.append(self.row[self.header.index("row_id")])
+                        except Exception:
+                            self.row_id.append("N/A")
                             sys.exc_clear()
                         try:
                             self.chartDate.append(self.row[self.header.index("Chart.time")])
@@ -540,18 +551,17 @@ class App:
                     self.pttext.insert(END, self.dSum[self.total])
                     self.pttext.config(state=DISABLED)
 
-                #Results file
+                #
                 if os.path.isfile(self.newfile) == True:
                     with open(self.newfile, 'r+') as self.newf:
                         self.storage = csv.reader(self.newf)
                         for line in self.storage:
                             self.SID.append(line[0])
                         self.mem = len(self.SID)
-                        #If there is a results file, begin where it was left off
                         self.crane(self.mem)
-                #In the absence of a results file, begin at the first observation
                 else:
                     self.crane(0)
+
 
 
     ## ###
@@ -587,78 +597,156 @@ class App:
 
     def writer(self):
         #If the file does not exist, add the header
-        if os.path.isfile(self.newfile) == False:
-            with open(self.newfile, 'w') as csvfile:
-                datawriter = csv.writer(csvfile, delimiter=',')
-                datawriter.writerow(['Subject ID']
-                                    + ['Hospital Admission ID']
-                                    + ['ICU ID']
-                                    + ['Note Type']
-                                    + ['Chart time']
-                                    + ['Category']
-                                    + ['Real time']
-                                    + ['None']
-                                    + ['Obesity']
-                                    + ['Non-Adherence']
-                                    + ['Developmental Delay/Retardation']
-                                    + ['Advanced Heart Disease']
-                                    + ['Advanced Lung Disease']
-                                    + ['Schizophrenia and other Psychiatric Disorders']
-                                    + ['Alcohol Abuse']
-                                    + ['Other Substance Abuse']
-                                    + ['Chronic Pain/Fibromyalgia']
-                                    + ['Chronic Neurological/Dystrophies']
-                                    + ['Advanced Cancer']
-                                    + ['Depression']
-                                    + ['Dementia']
-                                    + ['Unsure']
-                                    + ['Reason'])
+        if "row_id" or "text" in self.header:#Need to fix this-- no need for else anymore...
+            if os.path.isfile(self.newfile) == False:
+                with open(self.newfile, 'w') as csvfile:
+                    datawriter = csv.writer(csvfile, delimiter=',')
+                    datawriter.writerow(['Subject ID']
+                                        + ['Hospital Admission ID']
+                                        + ['ICU ID']
+                                        + ['Note Type']
+                                        + ['Chart time']
+                                        + ['Category']
+                                        + ['Real time']
+                                        + ['None']
+                                        + ['Obesity']
+                                        + ['Non-Adherence']
+                                        + ['Developmental Delay/Retardation']
+                                        + ['Advanced Heart Disease']
+                                        + ['Advanced Lung Disease']
+                                        + ['Schizophrenia and other Psychiatric Disorders']
+                                        + ['Alcohol Abuse']
+                                        + ['Other Substance Abuse']
+                                        + ['Chronic Pain/Fibromyalgia']
+                                        + ['Chronic Neurological/Dystrophies']
+                                        + ['Advanced Cancer']
+                                        + ['Depression']
+                                        + ['Dementia']
+                                        + ['Unsure']
+                                        + ['Reason']
+                                        + ['text']
+                                        + ['row_id'])
 
-        else:
-            #If no indicator is ticked, pass
-            if bool(self.indicatorvalues['None'].get()) == False \
-           + bool(self.indicatorvalues["Obesity"].get()) == False \
-           + bool(self.indicatorvalues['Non-Adherence'].get()) == False \
-           + bool(self.indicatorvalues['Developmental Delay/Retardation'].get()) == False \
-           + bool(self.indicatorvalues['Advanced Heart Disease'].get()) == False \
-           + bool(self.indicatorvalues['Advanced Lung Disease'].get()) == False \
-           + bool(self.indicatorvalues['Schizophrenia and \nother Psychiatric Disorders'].get()) == False \
-           + bool(self.indicatorvalues['Alcohol Abuse'].get()) == False \
-           + bool(self.indicatorvalues['Other Substance Abuse'].get()) == False \
-           + bool(self.indicatorvalues['Chronic Pain/Fibromyalgia'].get()) == False \
-           + bool(self.indicatorvalues['Chronic Neurological/Dystrophies'].get()) == False \
-           + bool(self.indicatorvalues['Advanced Cancer'].get()) == False \
-           + bool(self.indicatorvalues['Depression'].get()) == False \
-           + bool(self.indicatorvalues['Dementia'].get()) == False \
-           + bool(self.indicatorvalues['Unsure'].get()) == False:
-                pass
-            #If an indicator is ticked
             else:
-               with open(self.newfile, 'a') as csvfile:
-                datawriter = csv.writer(csvfile, delimiter=',')
-                datawriter.writerow([str(self.subjID[self.total])]
-                                + [str(self.hAdm[self.total])]
-                                + [str(self.icuID[self.total])]
-                                + [str(self.notetype[self.total])]
-                                + [str(self.chartID[self.total])]
-                                + [str(self.icuSeq[self.total])]
-                                + [str(self.category[self.total])]
-                                + [str(self.indicatorvalues['None'].get())]
-                                + [str(self.indicatorvalues['Obesity'].get())]
-                                + [str(self.indicatorvalues['Non-Adherence'].get())]
-                                + [str(self.indicatorvalues['Developmental Delay/Retardation'].get())]
-                                + [str(self.indicatorvalues['Advanced Heart Disease'].get())]
-                                + [str(self.indicatorvalues['Advanced Lung Disease'].get())]
-                                + [str(self.indicatorvalues['Schizophrenia and \nother Psychiatric Disorders'].get())]
-                                + [str(self.indicatorvalues['Alcohol Abuse'].get())]
-                                + [str(self.indicatorvalues['Other Substance Abuse'].get())]
-                                + [str(self.indicatorvalues['Chronic Pain/Fibromyalgia'].get())]
-                                + [str(self.indicatorvalues['Chronic Neurological/Dystrophies'].get())]
-                                + [str(self.indicatorvalues['Advanced Cancer'].get())]
-                                + [str(self.indicatorvalues['Depression'].get())]
-                                + [str(self.indicatorvalues['Dementia'].get())]
-                                + [str(self.indicatorvalues['Unsure'].get())]
-                                + [str(self.unsureReason.get())])
+                #If no indicator is ticked, pass
+                if bool(self.indicatorvalues['None'].get()) == False \
+                + bool(self.indicatorvalues["Obesity"].get()) == False \
+                + bool(self.indicatorvalues['Non-Adherence'].get()) == False \
+                + bool(self.indicatorvalues['Developmental Delay/Retardation'].get()) == False \
+                + bool(self.indicatorvalues['Advanced Heart Disease'].get()) == False \
+                + bool(self.indicatorvalues['Advanced Lung Disease'].get()) == False \
+                + bool(self.indicatorvalues['Schizophrenia and \nother Psychiatric Disorders'].get()) == False \
+                + bool(self.indicatorvalues['Alcohol Abuse'].get()) == False \
+                + bool(self.indicatorvalues['Other Substance Abuse'].get()) == False \
+                + bool(self.indicatorvalues['Chronic Pain/Fibromyalgia'].get()) == False \
+                + bool(self.indicatorvalues['Chronic Neurological/Dystrophies'].get()) == False \
+                + bool(self.indicatorvalues['Advanced Cancer'].get()) == False \
+                + bool(self.indicatorvalues['Depression'].get()) == False \
+                + bool(self.indicatorvalues['Dementia'].get()) == False \
+                + bool(self.indicatorvalues['Unsure'].get()) == False:
+                    pass
+                #If an indicator is ticked
+                else:
+                    with open(self.newfile, 'a') as csvfile:
+                        datawriter = csv.writer(csvfile, delimiter=',')
+                        datawriter.writerow([str(self.subjID[self.total])]
+                                    + [str(self.hAdm[self.total])]
+                                    + [str(self.icuID[self.total])]
+                                    + [str(self.notetype[self.total])]
+                                    + [str(self.chartID[self.total])]
+                                    + [str(self.icuSeq[self.total])]
+                                    + [str(self.category[self.total])]
+                                    + [str(self.indicatorvalues['None'].get())]
+                                    + [str(self.indicatorvalues['Obesity'].get())]
+                                    + [str(self.indicatorvalues['Non-Adherence'].get())]
+                                    + [str(self.indicatorvalues['Developmental Delay/Retardation'].get())]
+                                    + [str(self.indicatorvalues['Advanced Heart Disease'].get())]
+                                    + [str(self.indicatorvalues['Advanced Lung Disease'].get())]
+                                    + [str(self.indicatorvalues['Schizophrenia and \nother Psychiatric Disorders'].get())]
+                                    + [str(self.indicatorvalues['Alcohol Abuse'].get())]
+                                    + [str(self.indicatorvalues['Other Substance Abuse'].get())]
+                                    + [str(self.indicatorvalues['Chronic Pain/Fibromyalgia'].get())]
+                                    + [str(self.indicatorvalues['Chronic Neurological/Dystrophies'].get())]
+                                    + [str(self.indicatorvalues['Advanced Cancer'].get())]
+                                    + [str(self.indicatorvalues['Depression'].get())]
+                                    + [str(self.indicatorvalues['Dementia'].get())]
+                                    + [str(self.indicatorvalues['Unsure'].get())]
+                                    + [str(self.unsureReason.get())]
+                                    + [str(self.dSum[self.total])]
+                                    + [str(self.row_id[self.total])])
+        else:
+            if os.path.isfile(self.newfile) == False:
+                with open(self.newfile, 'w') as csvfile:
+                    datawriter = csv.writer(csvfile, delimiter=',')
+                    datawriter.writerow(['Subject ID']
+                                        + ['Hospital Admission ID']
+                                        + ['ICU ID']
+                                        + ['Note Type']
+                                        + ['Chart time']
+                                        + ['Category']
+                                        + ['Real time']
+                                        + ['None']
+                                        + ['Obesity']
+                                        + ['Non-Adherence']
+                                        + ['Developmental Delay/Retardation']
+                                        + ['Advanced Heart Disease']
+                                        + ['Advanced Lung Disease']
+                                        + ['Schizophrenia and other Psychiatric Disorders']
+                                        + ['Alcohol Abuse']
+                                        + ['Other Substance Abuse']
+                                        + ['Chronic Pain/Fibromyalgia']
+                                        + ['Chronic Neurological/Dystrophies']
+                                        + ['Advanced Cancer']
+                                        + ['Depression']
+                                        + ['Dementia']
+                                        + ['Unsure']
+                                        + ['Reason'])
+
+            else:
+                #If no indicator is ticked, pass
+                if bool(self.indicatorvalues['None'].get()) == False \
+                + bool(self.indicatorvalues["Obesity"].get()) == False \
+                + bool(self.indicatorvalues['Non-Adherence'].get()) == False \
+                + bool(self.indicatorvalues['Developmental Delay/Retardation'].get()) == False \
+                + bool(self.indicatorvalues['Advanced Heart Disease'].get()) == False \
+                + bool(self.indicatorvalues['Advanced Lung Disease'].get()) == False \
+                + bool(self.indicatorvalues['Schizophrenia and \nother Psychiatric Disorders'].get()) == False \
+                + bool(self.indicatorvalues['Alcohol Abuse'].get()) == False \
+                + bool(self.indicatorvalues['Other Substance Abuse'].get()) == False \
+                + bool(self.indicatorvalues['Chronic Pain/Fibromyalgia'].get()) == False \
+                + bool(self.indicatorvalues['Chronic Neurological/Dystrophies'].get()) == False \
+                + bool(self.indicatorvalues['Advanced Cancer'].get()) == False \
+                + bool(self.indicatorvalues['Depression'].get()) == False \
+                + bool(self.indicatorvalues['Dementia'].get()) == False \
+                + bool(self.indicatorvalues['Unsure'].get()) == False:
+                    pass
+                #If an indicator is ticked
+                else:
+                    with open(self.newfile, 'a') as csvfile:
+                        datawriter = csv.writer(csvfile, delimiter=',')
+                        datawriter.writerow([str(self.subjID[self.total])]
+                                    + [str(self.hAdm[self.total])]
+                                    + [str(self.icuID[self.total])]
+                                    + [str(self.notetype[self.total])]
+                                    + [str(self.chartID[self.total])]
+                                    + [str(self.icuSeq[self.total])]
+                                    + [str(self.category[self.total])]
+                                    + [str(self.indicatorvalues['None'].get())]
+                                    + [str(self.indicatorvalues['Obesity'].get())]
+                                    + [str(self.indicatorvalues['Non-Adherence'].get())]
+                                    + [str(self.indicatorvalues['Developmental Delay/Retardation'].get())]
+                                    + [str(self.indicatorvalues['Advanced Heart Disease'].get())]
+                                    + [str(self.indicatorvalues['Advanced Lung Disease'].get())]
+                                    + [str(self.indicatorvalues['Schizophrenia and \nother Psychiatric Disorders'].get())]
+                                    + [str(self.indicatorvalues['Alcohol Abuse'].get())]
+                                    + [str(self.indicatorvalues['Other Substance Abuse'].get())]
+                                    + [str(self.indicatorvalues['Chronic Pain/Fibromyalgia'].get())]
+                                    + [str(self.indicatorvalues['Chronic Neurological/Dystrophies'].get())]
+                                    + [str(self.indicatorvalues['Advanced Cancer'].get())]
+                                    + [str(self.indicatorvalues['Depression'].get())]
+                                    + [str(self.indicatorvalues['Dementia'].get())]
+                                    + [str(self.indicatorvalues['Unsure'].get())]
+                                    + [str(self.unsureReason.get())])
 
 #                print('\n' + str(self.hAdm[self.total]) + str(self.dSum[self.total] + '\n' + str(self.indicatorvalues['Unsure'].get())))
 
