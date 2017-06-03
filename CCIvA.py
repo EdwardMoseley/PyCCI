@@ -181,8 +181,6 @@ class odict(_odict, dict):
 
 
 
-
-
 class App:
     def __init__(self, master):
         self.frame = Frame(master)
@@ -220,8 +218,9 @@ class App:
         self.library()
 
     ## ###
-    ## openfile() will
+    ## openfile() will call crane() which will call writer(), beware of ticked indicators!
     ## ###
+
 
     def openfile(self, buttonArg):
         print(buttonArg)
@@ -302,7 +301,7 @@ class App:
                         self.crane(self.mem)
                 else:
                     self.crane(0)
-        elif buttonArg == "Review":
+        elif buttonArg == "Review": ##This can be removed at some point
             self.path += -1
             if self.path == 0:
                 self.file = tkFileDialog.askopenfilename()
@@ -414,6 +413,10 @@ class App:
     ## ###
 
     def writer(self):
+        ## There is a bug here. If an indicator is ticked prior to the openfile calling crane calling writer,
+        # writer() will write down the header of the input file + the indicators
+
+
         #If the file does not exist, add the header
         if "row_id" or "text" in self.header:#Need to fix this-- no need for else anymore...
             if os.path.isfile(self.newfile) == False:
@@ -427,10 +430,10 @@ class App:
                                         + ['Category']
                                         + ['Real time']
                                         + ['Non-Adherence']
-                                        + ['Unsure']
                                         + ['Has PCP']
                                         + ['Does not have PCP']
                                         + ['Ambiguity in PCP status']
+                                        + ['Unsure']
                                         + ['Reason']
                                         + ['text']
                                         + ['row_id'])
