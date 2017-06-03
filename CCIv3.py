@@ -188,21 +188,9 @@ class App:
         self.frame = Frame(master)
         self.frame.pack()
         self.master = master
-        master.title("PyCCI")
+        master.title("Non-Adherence and PCP Status PyCCI")
         self.indicatorvalues = dict(odict([("None", 0),
                                            ("Non-Adherence", 0),
-                                           ("Obesity", 0),
-                                           ("Developmental Delay/Retardation", 0),
-                                           ("Advanced Heart Disease", 0),
-                                           ("Advanced Lung Disease", 0),
-                                           ("Schizophrenia and \nother Psychiatric Disorders", 0),
-                                           ("Alcohol Abuse", 0),
-                                           ("Other Substance Abuse", 0),
-                                           ("Chronic Pain/Fibromyalgia", 0),
-                                           ("Chronic Neurological/Dystrophies", 0),
-                                           ("Advanced Cancer", 0),
-                                           ("Depression", 0),
-                                           ("Dementia", 0),
                                            ("Unsure", 0)]).items())
                                            #add or take away indicators here and also in writer()
         self.path = 1
@@ -239,7 +227,7 @@ class App:
             self.path += -1
             if self.path == 0:
                 self.file = tkFileDialog.askopenfilename()
-                self.newfile = self.file[:-4] + "ResultsCCIv3.csv"
+                self.newfile = self.file[:-4] + "ResultsCCI_Alt.csv"
                 with open(self.file, 'r+') as self.f:
                     self.mycsv = csv.reader(self.f)
                     #Grab the data and hold it in memory
@@ -316,7 +304,7 @@ class App:
             self.path += -1
             if self.path == 0:
                 self.file = tkFileDialog.askopenfilename()
-                self.newfile = self.file[:-4] + "ResultsCCIv3.csv"
+                self.newfile = self.file[:-4] + "ResultsCCI_Alt.csv"
                 with open(self.file, 'r+') as self.f:
                     self.mycsv = csv.reader(self.f)
                     #Grab the data and hold it in memory
@@ -437,19 +425,7 @@ class App:
                                         + ['Category']
                                         + ['Real time']
                                         + ['None']
-                                        + ['Obesity']
                                         + ['Non-Adherence']
-                                        + ['Developmental Delay/Retardation']
-                                        + ['Advanced Heart Disease']
-                                        + ['Advanced Lung Disease']
-                                        + ['Schizophrenia and other Psychiatric Disorders']
-                                        + ['Alcohol Abuse']
-                                        + ['Other Substance Abuse']
-                                        + ['Chronic Pain/Fibromyalgia']
-                                        + ['Chronic Neurological/Dystrophies']
-                                        + ['Advanced Cancer']
-                                        + ['Depression']
-                                        + ['Dementia']
                                         + ['Unsure']
                                         + ['Reason']
                                         + ['text']
@@ -458,19 +434,7 @@ class App:
             else:
                 #If no indicator is ticked, pass
                 if bool(self.indicatorvalues['None'].get()) == False \
-                + bool(self.indicatorvalues["Obesity"].get()) == False \
                 + bool(self.indicatorvalues['Non-Adherence'].get()) == False \
-                + bool(self.indicatorvalues['Developmental Delay/Retardation'].get()) == False \
-                + bool(self.indicatorvalues['Advanced Heart Disease'].get()) == False \
-                + bool(self.indicatorvalues['Advanced Lung Disease'].get()) == False \
-                + bool(self.indicatorvalues['Schizophrenia and \nother Psychiatric Disorders'].get()) == False \
-                + bool(self.indicatorvalues['Alcohol Abuse'].get()) == False \
-                + bool(self.indicatorvalues['Other Substance Abuse'].get()) == False \
-                + bool(self.indicatorvalues['Chronic Pain/Fibromyalgia'].get()) == False \
-                + bool(self.indicatorvalues['Chronic Neurological/Dystrophies'].get()) == False \
-                + bool(self.indicatorvalues['Advanced Cancer'].get()) == False \
-                + bool(self.indicatorvalues['Depression'].get()) == False \
-                + bool(self.indicatorvalues['Dementia'].get()) == False \
                 + bool(self.indicatorvalues['Unsure'].get()) == False:
                     pass
                 #If an indicator is ticked
@@ -485,19 +449,7 @@ class App:
                                     + [str(self.icuSeq[self.total])]
                                     + [str(self.category[self.total])]
                                     + [str(self.indicatorvalues['None'].get())]
-                                    + [str(self.indicatorvalues['Obesity'].get())]
                                     + [str(self.indicatorvalues['Non-Adherence'].get())]
-                                    + [str(self.indicatorvalues['Developmental Delay/Retardation'].get())]
-                                    + [str(self.indicatorvalues['Advanced Heart Disease'].get())]
-                                    + [str(self.indicatorvalues['Advanced Lung Disease'].get())]
-                                    + [str(self.indicatorvalues['Schizophrenia and \nother Psychiatric Disorders'].get())]
-                                    + [str(self.indicatorvalues['Alcohol Abuse'].get())]
-                                    + [str(self.indicatorvalues['Other Substance Abuse'].get())]
-                                    + [str(self.indicatorvalues['Chronic Pain/Fibromyalgia'].get())]
-                                    + [str(self.indicatorvalues['Chronic Neurological/Dystrophies'].get())]
-                                    + [str(self.indicatorvalues['Advanced Cancer'].get())]
-                                    + [str(self.indicatorvalues['Depression'].get())]
-                                    + [str(self.indicatorvalues['Dementia'].get())]
                                     + [str(self.indicatorvalues['Unsure'].get())]
                                     + [str(self.unsureReason.get())]
                                     + [str(self.dSum[self.total])]
@@ -514,38 +466,14 @@ class App:
                                         + ['Category']
                                         + ['Real time']
                                         + ['None']
-                                        + ['Obesity']
                                         + ['Non-Adherence']
-                                        + ['Developmental Delay/Retardation']
-                                        + ['Advanced Heart Disease']
-                                        + ['Advanced Lung Disease']
-                                        + ['Schizophrenia and other Psychiatric Disorders']
-                                        + ['Alcohol Abuse']
-                                        + ['Other Substance Abuse']
-                                        + ['Chronic Pain/Fibromyalgia']
-                                        + ['Chronic Neurological/Dystrophies']
-                                        + ['Advanced Cancer']
-                                        + ['Depression']
-                                        + ['Dementia']
                                         + ['Unsure']
                                         + ['Reason'])
 
             else:
                 #If no indicator is ticked, pass
                 if bool(self.indicatorvalues['None'].get()) == False \
-                + bool(self.indicatorvalues["Obesity"].get()) == False \
                 + bool(self.indicatorvalues['Non-Adherence'].get()) == False \
-                + bool(self.indicatorvalues['Developmental Delay/Retardation'].get()) == False \
-                + bool(self.indicatorvalues['Advanced Heart Disease'].get()) == False \
-                + bool(self.indicatorvalues['Advanced Lung Disease'].get()) == False \
-                + bool(self.indicatorvalues['Schizophrenia and \nother Psychiatric Disorders'].get()) == False \
-                + bool(self.indicatorvalues['Alcohol Abuse'].get()) == False \
-                + bool(self.indicatorvalues['Other Substance Abuse'].get()) == False \
-                + bool(self.indicatorvalues['Chronic Pain/Fibromyalgia'].get()) == False \
-                + bool(self.indicatorvalues['Chronic Neurological/Dystrophies'].get()) == False \
-                + bool(self.indicatorvalues['Advanced Cancer'].get()) == False \
-                + bool(self.indicatorvalues['Depression'].get()) == False \
-                + bool(self.indicatorvalues['Dementia'].get()) == False \
                 + bool(self.indicatorvalues['Unsure'].get()) == False:
                     pass
                 #If an indicator is ticked
@@ -559,20 +487,10 @@ class App:
                                     + [str(self.chartID[self.total])]
                                     + [str(self.icuSeq[self.total])]
                                     + [str(self.category[self.total])]
+
                                     + [str(self.indicatorvalues['None'].get())]
-                                    + [str(self.indicatorvalues['Obesity'].get())]
                                     + [str(self.indicatorvalues['Non-Adherence'].get())]
-                                    + [str(self.indicatorvalues['Developmental Delay/Retardation'].get())]
-                                    + [str(self.indicatorvalues['Advanced Heart Disease'].get())]
-                                    + [str(self.indicatorvalues['Advanced Lung Disease'].get())]
-                                    + [str(self.indicatorvalues['Schizophrenia and \nother Psychiatric Disorders'].get())]
-                                    + [str(self.indicatorvalues['Alcohol Abuse'].get())]
-                                    + [str(self.indicatorvalues['Other Substance Abuse'].get())]
-                                    + [str(self.indicatorvalues['Chronic Pain/Fibromyalgia'].get())]
-                                    + [str(self.indicatorvalues['Chronic Neurological/Dystrophies'].get())]
-                                    + [str(self.indicatorvalues['Advanced Cancer'].get())]
-                                    + [str(self.indicatorvalues['Depression'].get())]
-                                    + [str(self.indicatorvalues['Dementia'].get())]
+
                                     + [str(self.indicatorvalues['Unsure'].get())]
                                     + [str(self.unsureReason.get())])
 
@@ -848,7 +766,7 @@ class App:
         self.pttext.insert(END, "Please use the ''Open CSV'' button to open the .csv file provided to you, "
                                 + "for example:\n'dischargeSummaries29JUN16.csv'\n"
                                 + "This will create a 'results' file within the same directory, in this "
-                                + "case the results file would be:\n 'dischargeSummaries29JUN16ResultsCCIv3.csv'")
+                                + "case the results file would be:\n 'dischargeSummaries29JUN16ResultsCCI_Alt.csv'")
 
 
 
