@@ -2,14 +2,14 @@
 
 import csv
 import os
-#from odict import odict
 from Tkinter import *
 import tkFont
 import tkFileDialog
-# Python Software Foundation License (begin oDict library) https://github.com/bluedynamics/odict/blob/master/src/odict/pyodict.py
-import copy
+# Partial implementation of odict library because Python 2.X
+# (https://github.com/bluedynamics/odict/blob/master/src/odict/pyodict.py)
+# Python Software Foundation License
+# (begin oDict library)
 import sys
-import functools
 
 
 class _Nil(object):
@@ -93,73 +93,6 @@ class _odict(object):
     def __getitem__(self, key):
         return self._dict_impl().__getitem__(self, key)[1]
 
-    def __setitem__(self, key, val):
-        dict_impl = self._dict_impl()
-        try:
-            dict_impl.__getitem__(self, key)[1] = val
-        except KeyError:
-            new = [dict_impl.__getattribute__(self, 'lt'), val, _nil]
-            dict_impl.__setitem__(self, key, new)
-            if dict_impl.__getattribute__(self, 'lt') == _nil:
-                dict_impl.__setattr__(self, 'lh', key)
-            else:
-                dict_impl.__getitem__(
-                    self, dict_impl.__getattribute__(self, 'lt'))[2] = key
-            dict_impl.__setattr__(self, 'lt', key)
-
-    def __delitem__(self, key):
-        dict_impl = self._dict_impl()
-        pred, _, succ = self._dict_impl().__getitem__(self, key)
-        if pred == _nil:
-            dict_impl.__setattr__(self, 'lh', succ)
-        else:
-            dict_impl.__getitem__(self, pred)[2] = succ
-        if succ == _nil:
-            dict_impl.__setattr__(self, 'lt', pred)
-        else:
-            dict_impl.__getitem__(self, succ)[0] = pred
-        dict_impl.__delitem__(self, key)
-
-    def __copy__(self):
-        new = type(self)()
-        for k, v in self.iteritems():
-            new[k] = v
-        new.__dict__.update(self.__dict__)
-        return new
-
-    def __deepcopy__(self, memo):
-        new = type(self)()
-        memo[id(self)] = new
-        for k, v in self.iteritems():
-            new[k] = copy.deepcopy(v, memo)
-        for k, v in self.__dict__.iteritems():
-            setattr(new, k, copy.deepcopy(v, memo))
-        return new
-
-    def __contains__(self, key):
-        try:
-            self[key]
-            return True
-        except KeyError:
-            return False
-
-    def has_key(self, key):
-        return key in self
-
-    def __len__(self):
-        return len(self.keys())
-
-    def __str__(self):
-        pairs = ("%r: %r" % (k, v) for k, v in self.iteritems())
-        return "{%s}" % ", ".join(pairs)
-
-    def __repr__(self):
-        if self:
-            pairs = ("(%r, %r)" % (k, v) for k, v in self.iteritems())
-            return "odict([%s])" % ", ".join(pairs)
-        else:
-            return "odict()"
-
     def get(self, k, x=None):
         if k in self:
             return self._dict_impl().__getitem__(self, k)[1]
@@ -174,25 +107,6 @@ class _odict(object):
             curr_key = dict_impl.__getitem__(self, curr_key)[2]
 
     iterkeys = __iter__
-
-    def keys(self):
-        return list(self.iterkeys())
-
-    def alter_key(self, old_key, new_key):
-        dict_impl = self._dict_impl()
-        val = dict_impl.__getitem__(self, old_key)
-        dict_impl.__delitem__(self, old_key)
-        if val[0] != _nil:
-            prev = dict_impl.__getitem__(self, val[0])
-            dict_impl.__setitem__(self, val[0], [prev[0], prev[1], new_key])
-        else:
-            dict_impl.__setattr__(self, 'lh', new_key)
-        if val[2] != _nil:
-            next = dict_impl.__getitem__(self, val[2])
-            dict_impl.__setitem__(self, val[2], [new_key, next[1], next[2]])
-        else:
-            dict_impl.__setattr__(self, 'lt', new_key)
-        dict_impl.__setitem__(self, new_key, val)
 
     def itervalues(self):
         dict_impl = self._dict_impl()
@@ -212,67 +126,6 @@ class _odict(object):
             yield curr_key, val
             curr_key = next_key
 
-    def items(self):
-        return list(self.iteritems())
-
-    def sort(self, cmp=None, key=None, reverse=False):
-        items = [(k, v) for k, v in self.iteritems()]
-        if cmp is not None:
-            key = functools.cmp_to_key(cmp)
-        if key is not None:
-            items = sorted(items, key=key)
-        else:
-            items = sorted(items, key=lambda x: x[1])
-        if reverse:
-            items.reverse()
-        self.clear()
-        self.__init__(items)
-
-    def clear(self):
-        dict_impl = self._dict_impl()
-        dict_impl.clear(self)
-        dict_impl.__setattr__(self, 'lh', _nil)
-        dict_impl.__setattr__(self, 'lt', _nil)
-
-    def copy(self):
-        return self.__class__(self)
-
-    def update(self, data=(), **kwds):
-        if kwds:
-            raise TypeError(
-                "update() of ordered dict takes no keyword arguments to avoid "
-                "an ordering trap."
-            )
-        if hasattr(data, "iteritems"):
-            data = data.iteritems()
-        for key, val in data:
-            self[key] = val
-
-    def setdefault(self, k, x=None):
-        try:
-            return self[k]
-        except KeyError:
-            self[k] = x
-            return x
-
-    def pop(self, k, x=_nil):
-        try:
-            val = self[k]
-            del self[k]
-            return val
-        except KeyError:
-            if x == _nil:
-                raise
-            return x
-
-    def popitem(self):
-        try:
-            dict_impl = self._dict_impl()
-            key = dict_impl.__getattribute__(self, 'lt')
-            return key, self.pop(key)
-        except KeyError:
-            raise KeyError("'popitem(): ordered dictionary is empty'")
-
     def riterkeys(self):
         """To iterate on keys in reversed order.
         """
@@ -284,10 +137,6 @@ class _odict(object):
 
     __reversed__ = riterkeys
 
-    def rkeys(self):
-        """List of the keys in reversed order.
-        """
-        return list(self.riterkeys())
 
     def ritervalues(self):
         """To iterate on values in reversed order.
@@ -313,26 +162,6 @@ class _odict(object):
             yield curr_key, val
             curr_key = pred_key
 
-    def ritems(self):
-        """List of the (key, value) in reversed order.
-        """
-        return list(self.riteritems())
-
-    def firstkey(self):
-        if self:
-            return self._dict_impl().__getattribute__(self, 'lh')
-        else:
-            raise KeyError("'firstkey(): ordered dictionary is empty'")
-
-    def lastkey(self):
-        if self:
-            return self._dict_impl().__getattribute__(self, 'lt')
-        else:
-            raise KeyError("'lastkey(): ordered dictionary is empty'")
-
-    def as_dict(self):
-        return self._dict_impl()(self.iteritems())
-
     def _repr(self):
         """_repr(): low level repr of the whole data contained in the odict.
         Useful for debugging.
@@ -342,7 +171,6 @@ class _odict(object):
         return form % (dict_impl.__getattribute__(self, 'lh'),
                        dict_impl.__getattribute__(self, 'lt'),
                        dict_impl.__repr__(self))
-
 
 class odict(_odict, dict):
 
@@ -817,13 +645,13 @@ class App:
 
 
         ## ###
-        ##
-        self.reviewButton = Button(self.title,
-                                   text = "Review CSV",
-                                   command = lambda: self.openfile("Review"),
-                                   padx=25)
-
-        self.reviewButton.place(anchor = W, x = 20, rely = 0.75)
+        ## Currently no need for review
+        #self.reviewButton = Button(self.title,
+        #                           text = "Review CSV",
+        #                           command = lambda: self.openfile("Review"),
+        #                           padx=25)
+        #
+        #self.reviewButton.place(anchor = W, x = 20, rely = 0.75)
         ##
         ## ###
 
@@ -1030,7 +858,7 @@ class App:
 
 
 
-    #Checkbuttons
+        #Checkbuttons
         self.checkframe = LabelFrame(self.rightpane, text="Indicators",
                                      font=self.boldfont,
                                      padx = 10,
@@ -1067,7 +895,6 @@ def info():
 ### Menu does not need to be part of the class
 menubar = Menu(root)
 filemenu = Menu(menubar, tearoff=0)
-#filemenu.add_command(label="Open CSV")#, command=openfile)
 menubar.add_cascade(label="File", menu=filemenu)
 helpmenu = Menu(menubar, tearoff=0)
 helpmenu.add_command(label="About", command=about)
