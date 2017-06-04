@@ -181,6 +181,8 @@ class odict(_odict, dict):
 
 
 
+
+
 class App:
     def __init__(self, master):
         self.frame = Frame(master)
@@ -218,9 +220,8 @@ class App:
         self.library()
 
     ## ###
-    ## openfile() will call crane() which will call writer(), beware of ticked indicators!
+    ## openfile() will
     ## ###
-
 
     def openfile(self, buttonArg):
         print(buttonArg)
@@ -301,7 +302,7 @@ class App:
                         self.crane(self.mem)
                 else:
                     self.crane(0)
-        elif buttonArg == "Review": ##This can be removed at some point
+        elif buttonArg == "Review":
             self.path += -1
             if self.path == 0:
                 self.file = tkFileDialog.askopenfilename()
@@ -413,10 +414,6 @@ class App:
     ## ###
 
     def writer(self):
-        ## There is a bug here. If an indicator is ticked prior to the openfile calling crane calling writer,
-        # writer() will write down the header of the input file + the indicators
-
-
         #If the file does not exist, add the header
         if "row_id" or "text" in self.header:#Need to fix this-- no need for else anymore...
             if os.path.isfile(self.newfile) == False:
@@ -572,6 +569,24 @@ class App:
 
 
 
+
+
+
+
+
+        ## ###
+        ## Currently no need for review
+        #self.reviewButton = Button(self.title,
+        #                           text = "Review CSV",
+        #                           command = lambda: self.openfile("Review"),
+        #                           padx=25)
+        #
+        #self.reviewButton.place(anchor = W, x = 20, rely = 0.75)
+        ##
+        ## ###
+
+
+
         self.photo = """
         R0lGODlhRgAwAPf/AOb58//ylf/JN//PPv/cZjt+oWfiuD6IsHipw//jasba5f/gUjuApP/mWJvs0FbLqj6GrP/eUFjOrKfF1v/zyFPGqFTIqS5
         6qtr07YrdxWTftmjkuTt+oDyCpv/75jyEqv/lc1ORtGDZs1LFp5TpzDp8oP/kVrnR1j+KsdLi617WsbPN0WrnupC1zVfMq+Lt8mXgt//URFrQrka
@@ -627,12 +642,15 @@ class App:
         self.panel = Label(self.title, image = self.photos)
         self.panel.pack(side = RIGHT, padx=10)
 
-        Label(self.title, text = "\t\tNon-Adherence and PCP Status Patient GUI",
+        Label(self.title, text = "\t\tNon-Adherence and PCP Status GUI",
               font = self.titlefont,
               fg="dodgerblue4").pack()
 
+    #Top row open csv window & button
+        #self.k2 = PanedWindow(self.k1)
+        #self.k1.add(self.k2)
 
-        #Panes below buttons
+    #Panes below buttons
         self.k3 = PanedWindow(self.k1)
         self.k1.add(self.k3)
         self.leftpane = PanedWindow(self.k3)
@@ -687,6 +705,28 @@ class App:
         self.ptframeinfo.pack()
         self.ptframeinfo.columnconfigure(1, minsize = 300)
 
+
+
+
+
+
+
+
+
+        #self.ptsubID_ = Label(self.ptframeinfo, text = "Subject ID:", fg="dodgerblue4")
+        #self.ptsubID_.grid(row = 1, column = 0, sticky = E)
+        #self.ptsubID = Label(self.ptframeinfo, text = " ", font = self.h3font)
+        #self.ptsubID.grid(row = 1, column = 1, sticky = W)
+
+        ##
+        # Reason for unsure
+        ##
+
+        #Create a frame for this?
+
+        #self.unsureText = Label(self.reviewerInfo, text = )
+
+
         self.phAdm_ = Label(self.ptframeinfo, text = "Hospital Admission ID:", fg="dodgerblue4")
         self.phAdm_.grid(row = 2, column = 0, sticky = E)
         self.pthAdm = Label(self.ptframeinfo, text = " ", font = self.h3font)
@@ -740,7 +780,11 @@ class App:
                                 + "This will create a 'results' file within the same directory, in this "
                                 + "case the results file would be:\n 'dischargeSummaries29JUN16ResultsCCIvA.csv'")
 
+
+
         self.pttext.config(state=DISABLED)
+
+
 
 
         #Checkbuttons

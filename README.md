@@ -1,6 +1,6 @@
 # PyCCI
 
-Save CCIv2.py to your desktop.
+Save CCIv3.py to your desktop.
 
 You have to use your terminal to run the program. You can use command+space to open spotlight, and there type in "terminal" and hit enter.
 
@@ -19,7 +19,7 @@ quit()
 
 We want python to open the patient note annotation program, so now we're going to type:
 
-python ~/Desktop/CCIv2.py
+python ~/Desktop/CCIv3.py
 
 We will have the following result:
 
@@ -31,9 +31,9 @@ Note that your terminal remains open, because any error output from python is go
 
 That stuff isn't too important for the user's purposes, though, because hopefully the user won't need to deal with any debugging!
 
-I've also attached sampleDat.csv-- which you can open with CCIv2.py. It's set up in the same way as our data files, but it doesn't have any protected info-- you can use it to make sure everything is working properly.
+I've also attached sampleDat.csv-- which you can open with CCIv3.py. It's set up in the same way as our data files, but it doesn't have any protected info-- you can use it to make sure everything is working properly.
 
-After annotating the notes, you will notice that you have a SampleDatResultsCCIv2.csv file, also. The results file is where we store our data, and it is the only copy until you email it out. Inside the file will look like this:
+After annotating the notes, you will notice that you have a SampleDatResultsCCIv3.csv file, also. The results file is where we store our data, and it is the only copy until you email it out. Inside the file will look like this:
 
 ![alt text](https://github.com/EdwardMoseley/PyCCI/blob/master/images/img5.png "Terminal Window")
 
