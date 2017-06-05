@@ -193,7 +193,7 @@ class App:
                                            ("Does not have PCP", 0),
                                            ("Ambiguity in PCP status", 0),
                                            ("Non-Adherence", 0),
-                                           ("Unsure", 0)]).items())
+                                           ("Unsure about Non-Adherence", 0)]).items())
                                            #add or take away indicators here and also in writer()
         self.path = 1
         self.total = 0
@@ -430,10 +430,13 @@ class App:
                                         + ['Has PCP']
                                         + ['Does not have PCP']
                                         + ['Ambiguity in PCP status']
-                                        + ['Unsure']
+                                        + ['Unsure about Non-Adherence']
                                         + ['Reason']
                                         + ['text']
                                         + ['row_id'])
+
+
+
 
             else:
                 #If no indicator is ticked, pass
@@ -441,7 +444,7 @@ class App:
                 + bool(self.indicatorvalues['Has PCP'].get()) == False \
                 + bool(self.indicatorvalues['Does not have PCP'].get()) == False \
                 + bool(self.indicatorvalues['Ambiguity in PCP status'].get()) == False \
-                + bool(self.indicatorvalues['Unsure'].get()) == False:
+                + bool(self.indicatorvalues['Unsure about None-Adherence'].get()) == False:
                     pass
                 #If an indicator is ticked
                 else:
@@ -458,7 +461,7 @@ class App:
                                     + [str(self.indicatorvalues['Has PCP'].get())]
                                     + [str(self.indicatorvalues['Does not have PCP'].get())]
                                     + [str(self.indicatorvalues['Ambiguity in PCP status'].get())]
-                                    + [str(self.indicatorvalues['Unsure'].get())]
+                                    + [str(self.indicatorvalues['Unsure about Non-Adherence'].get())]
                                     + [str(self.unsureReason.get())]
                                     + [str(self.dSum[self.total])]
                                     + [str(self.row_id[self.total])])
@@ -477,7 +480,7 @@ class App:
                                         + ['Has PCP']
                                         + ['Does not have PCP']
                                         + ['Ambiguity in PCP status']
-                                        + ['Unsure']
+                                        + ['Unsure about Non-Adherence']
                                         + ['Reason'])
 
             else:
@@ -486,7 +489,7 @@ class App:
                 + bool(self.indicatorvalues['Has PCP'].get()) == False \
                 + bool(self.indicatorvalues['Does not have PCP'].get()) == False \
                 + bool(self.indicatorvalues['Ambiguity in PCP status'].get()) == False \
-                + bool(self.indicatorvalues['Unsure'].get()) == False:
+                + bool(self.indicatorvalues['Unsure about Non-Adherence'].get()) == False:
                     pass
                 #If an indicator is ticked
                 else:
@@ -503,7 +506,7 @@ class App:
                                     + [str(self.indicatorvalues['Has PCP'].get())]
                                     + [str(self.indicatorvalues['Does not have PCP'].get())]
                                     + [str(self.indicatorvalues['Ambiguity in PCP status'].get())]
-                                    + [str(self.indicatorvalues['Unsure'].get())]
+                                    + [str(self.indicatorvalues['Unsure about Non-Adherence'].get())]
                                     + [str(self.unsureReason.get())])
 
 #                print('\n' + str(self.hAdm[self.total]) + str(self.dSum[self.total] + '\n' + str(self.indicatorvalues['Unsure'].get())))
@@ -518,19 +521,72 @@ class App:
         self.unsureReason.set("Reason for Unsure here.")
         self.unsureText.pack(anchor = W, pady = 5)
 
-        for machine in self.indicatorvalues:
-            myvar = IntVar()
-            myvar.set(self.indicatorvalues[machine])
-            self.indicatorvalues[machine] = myvar
-            l = Checkbutton(self.checkframe,
-                            text=machine,
-                            variable=myvar,
-                            onvalue=1,
-                            offvalue=0,
-                            height=1,
-                            pady=5,
-                            justify = LEFT)
-            l.pack(anchor = W)
+
+        myvar = IntVar()#self?
+        myvar.set(self.indicatorvalues["Has PCP"])
+        self.indicatorvalues["Has PCP"] = myvar
+        l = Checkbutton(self.checkframe,
+                text = "Has PCP",
+                variable = myvar,
+                onvalue = 1,
+                offvalue = 0,
+                height = 1,
+                pady = 5,
+                justify = LEFT)
+        l.pack(anchor = W)
+
+
+        myvar = IntVar()#self?
+        myvar.set(self.indicatorvalues["Does not have PCP"])
+        self.indicatorvalues["Does not have PCP"] = myvar
+        l = Checkbutton(self.checkframe,
+            text = "Does not have PCP",
+            variable = myvar,
+            onvalue = 1,
+            offvalue = 0,
+            height = 1,
+            pady = 5,
+            justify = LEFT)
+        l.pack(anchor = W)
+
+        myvar = IntVar()#self?
+        myvar.set(self.indicatorvalues["Ambiguity in PCP status"])
+        self.indicatorvalues["Ambiguity in PCP status"] = myvar
+        l = Checkbutton(self.checkframe,
+            text = "Ambiguity in PCP status",
+            variable = myvar,
+            onvalue = 1,
+            offvalue = 0,
+            height = 1,
+            pady = 5,
+            justify = LEFT)
+        l.pack(anchor = W)
+
+        myvar = IntVar()#self?
+        myvar.set(self.indicatorvalues["Non-Adherence"])
+        self.indicatorvalues["Non-Adherence"] = myvar
+        l = Checkbutton(self.checkframe,
+            text = "Non-Adherence",
+            variable = myvar,
+            onvalue = 1,
+            offvalue = 0,
+            height = 1,
+            pady = 5,
+            justify = LEFT)
+        l.pack(anchor = W)
+
+        myvar = IntVar()#self?
+        myvar.set(self.indicatorvalues["Unsure about Non-Adherence"])
+        self.indicatorvalues["Unsure about Non-Adherence"] = myvar
+        l = Checkbutton(self.checkframe,
+            text = "Unsure about Non-Adherence",
+            variable = myvar,
+            onvalue = 1,
+            offvalue = 0,
+            height = 1,
+            pady = 5,
+            justify = LEFT)
+        l.pack(anchor = W)
 
 
     ## ###
