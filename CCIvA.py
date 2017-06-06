@@ -264,14 +264,14 @@ class App:
                                 self.hAdm.append(self.row[self.header.index("hadm.id")])
                             except Exception:
                                 sys.exc_clear()
-                        self.icuID.append(self.row[2])#ICU ID is deprecated
+                        self.icuID.append("N/A")#ICU ID is deprecated
                         self.chartID.append(self.row[3])
                         try:
-                            self.category.append(self.row[header.index("Category")])
+                            self.category.append(self.row[self.header.index("Category")])
                         except Exception:
                             self.category.append("N/A")
                             sys.exc_clear()
-                        self.notetype.append(self.row[5])
+                        self.notetype.append(self.row[self.header.index("category")])#Quick fix
                         self.dSum.append(self.row[self.header.index("text")])
 
 
@@ -341,14 +341,14 @@ class App:
                                 self.hAdm.append(self.row[self.header.index("hadm.id")])
                             except Exception:
                                 sys.exc_clear()
-                        self.icuID.append(self.row[2])#ICU ID is deprecated
+                        self.icuID.append("N/A")#ICU ID is deprecated
                         self.chartID.append(self.row[3])
                         try:
-                            self.category.append(self.row[header.index("Category")])
+                            self.category.append(self.row[self.header.index("Category")])
                         except Exception:
                             self.category.append("N/A")
                             sys.exc_clear()
-                        self.notetype.append(self.row[5])
+                        self.notetype.append(self.row[self.header.index("category")])#Quick fix
                         self.dSum.append(self.row[self.header.index("text")])
 
 
@@ -434,17 +434,13 @@ class App:
                                         + ['Reason']
                                         + ['text']
                                         + ['row_id'])
-
-
-
-
             else:
                 #If no indicator is ticked, pass
                 if bool(self.indicatorvalues['Non-Adherence'].get()) == False \
                 + bool(self.indicatorvalues['Has PCP'].get()) == False \
                 + bool(self.indicatorvalues['Does not have PCP'].get()) == False \
                 + bool(self.indicatorvalues['Ambiguity in PCP status'].get()) == False \
-                + bool(self.indicatorvalues['Unsure about None-Adherence'].get()) == False:
+                + bool(self.indicatorvalues['Unsure about Non-Adherence'].get()) == False:
                     pass
                 #If an indicator is ticked
                 else:
@@ -587,6 +583,7 @@ class App:
             pady = 5,
             justify = LEFT)
         l.pack(anchor = W)
+
 
 
     ## ###
