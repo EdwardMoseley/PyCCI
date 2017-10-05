@@ -2,15 +2,14 @@
 
 import csv
 import os
+#from odict import odict
 from Tkinter import *
 import tkFont
 import tkFileDialog
-from ScrolledText import ScrolledText
-# Partial implementation of odict library because Python 2.X
-# (https://github.com/bluedynamics/odict/blob/master/src/odict/pyodict.py)
-# Python Software Foundation License
-# (begin oDict library)
+# Python Software Foundation License (begin oDict library) https://github.com/bluedynamics/odict/blob/master/src/odict/pyodict.py
+import copy
 import sys
+import functools
 
 
 class _Nil(object):
@@ -94,6 +93,73 @@ class _odict(object):
     def __getitem__(self, key):
         return self._dict_impl().__getitem__(self, key)[1]
 
+    def __setitem__(self, key, val):
+        dict_impl = self._dict_impl()
+        try:
+            dict_impl.__getitem__(self, key)[1] = val
+        except KeyError:
+            new = [dict_impl.__getattribute__(self, 'lt'), val, _nil]
+            dict_impl.__setitem__(self, key, new)
+            if dict_impl.__getattribute__(self, 'lt') == _nil:
+                dict_impl.__setattr__(self, 'lh', key)
+            else:
+                dict_impl.__getitem__(
+                    self, dict_impl.__getattribute__(self, 'lt'))[2] = key
+            dict_impl.__setattr__(self, 'lt', key)
+
+    def __delitem__(self, key):
+        dict_impl = self._dict_impl()
+        pred, _, succ = self._dict_impl().__getitem__(self, key)
+        if pred == _nil:
+            dict_impl.__setattr__(self, 'lh', succ)
+        else:
+            dict_impl.__getitem__(self, pred)[2] = succ
+        if succ == _nil:
+            dict_impl.__setattr__(self, 'lt', pred)
+        else:
+            dict_impl.__getitem__(self, succ)[0] = pred
+        dict_impl.__delitem__(self, key)
+
+    def __copy__(self):
+        new = type(self)()
+        for k, v in self.iteritems():
+            new[k] = v
+        new.__dict__.update(self.__dict__)
+        return new
+
+    def __deepcopy__(self, memo):
+        new = type(self)()
+        memo[id(self)] = new
+        for k, v in self.iteritems():
+            new[k] = copy.deepcopy(v, memo)
+        for k, v in self.__dict__.iteritems():
+            setattr(new, k, copy.deepcopy(v, memo))
+        return new
+
+    def __contains__(self, key):
+        try:
+            self[key]
+            return True
+        except KeyError:
+            return False
+
+    def has_key(self, key):
+        return key in self
+
+    def __len__(self):
+        return len(self.keys())
+
+    def __str__(self):
+        pairs = ("%r: %r" % (k, v) for k, v in self.iteritems())
+        return "{%s}" % ", ".join(pairs)
+
+    def __repr__(self):
+        if self:
+            pairs = ("(%r, %r)" % (k, v) for k, v in self.iteritems())
+            return "odict([%s])" % ", ".join(pairs)
+        else:
+            return "odict()"
+
     def get(self, k, x=None):
         if k in self:
             return self._dict_impl().__getitem__(self, k)[1]
@@ -108,6 +174,25 @@ class _odict(object):
             curr_key = dict_impl.__getitem__(self, curr_key)[2]
 
     iterkeys = __iter__
+
+    def keys(self):
+        return list(self.iterkeys())
+
+    def alter_key(self, old_key, new_key):
+        dict_impl = self._dict_impl()
+        val = dict_impl.__getitem__(self, old_key)
+        dict_impl.__delitem__(self, old_key)
+        if val[0] != _nil:
+            prev = dict_impl.__getitem__(self, val[0])
+            dict_impl.__setitem__(self, val[0], [prev[0], prev[1], new_key])
+        else:
+            dict_impl.__setattr__(self, 'lh', new_key)
+        if val[2] != _nil:
+            next = dict_impl.__getitem__(self, val[2])
+            dict_impl.__setitem__(self, val[2], [new_key, next[1], next[2]])
+        else:
+            dict_impl.__setattr__(self, 'lt', new_key)
+        dict_impl.__setitem__(self, new_key, val)
 
     def itervalues(self):
         dict_impl = self._dict_impl()
@@ -127,6 +212,67 @@ class _odict(object):
             yield curr_key, val
             curr_key = next_key
 
+    def items(self):
+        return list(self.iteritems())
+
+    def sort(self, cmp=None, key=None, reverse=False):
+        items = [(k, v) for k, v in self.iteritems()]
+        if cmp is not None:
+            key = functools.cmp_to_key(cmp)
+        if key is not None:
+            items = sorted(items, key=key)
+        else:
+            items = sorted(items, key=lambda x: x[1])
+        if reverse:
+            items.reverse()
+        self.clear()
+        self.__init__(items)
+
+    def clear(self):
+        dict_impl = self._dict_impl()
+        dict_impl.clear(self)
+        dict_impl.__setattr__(self, 'lh', _nil)
+        dict_impl.__setattr__(self, 'lt', _nil)
+
+    def copy(self):
+        return self.__class__(self)
+
+    def update(self, data=(), **kwds):
+        if kwds:
+            raise TypeError(
+                "update() of ordered dict takes no keyword arguments to avoid "
+                "an ordering trap."
+            )
+        if hasattr(data, "iteritems"):
+            data = data.iteritems()
+        for key, val in data:
+            self[key] = val
+
+    def setdefault(self, k, x=None):
+        try:
+            return self[k]
+        except KeyError:
+            self[k] = x
+            return x
+
+    def pop(self, k, x=_nil):
+        try:
+            val = self[k]
+            del self[k]
+            return val
+        except KeyError:
+            if x == _nil:
+                raise
+            return x
+
+    def popitem(self):
+        try:
+            dict_impl = self._dict_impl()
+            key = dict_impl.__getattribute__(self, 'lt')
+            return key, self.pop(key)
+        except KeyError:
+            raise KeyError("'popitem(): ordered dictionary is empty'")
+
     def riterkeys(self):
         """To iterate on keys in reversed order.
         """
@@ -138,6 +284,10 @@ class _odict(object):
 
     __reversed__ = riterkeys
 
+    def rkeys(self):
+        """List of the keys in reversed order.
+        """
+        return list(self.riterkeys())
 
     def ritervalues(self):
         """To iterate on values in reversed order.
@@ -163,6 +313,26 @@ class _odict(object):
             yield curr_key, val
             curr_key = pred_key
 
+    def ritems(self):
+        """List of the (key, value) in reversed order.
+        """
+        return list(self.riteritems())
+
+    def firstkey(self):
+        if self:
+            return self._dict_impl().__getattribute__(self, 'lh')
+        else:
+            raise KeyError("'firstkey(): ordered dictionary is empty'")
+
+    def lastkey(self):
+        if self:
+            return self._dict_impl().__getattribute__(self, 'lt')
+        else:
+            raise KeyError("'lastkey(): ordered dictionary is empty'")
+
+    def as_dict(self):
+        return self._dict_impl()(self.iteritems())
+
     def _repr(self):
         """_repr(): low level repr of the whole data contained in the odict.
         Useful for debugging.
@@ -173,6 +343,7 @@ class _odict(object):
                        dict_impl.__getattribute__(self, 'lt'),
                        dict_impl.__repr__(self))
 
+
 class odict(_odict, dict):
 
     def _dict_impl(self):
@@ -181,23 +352,34 @@ class odict(_odict, dict):
 ## End odict library
 
 
+
+
+
 class App:
     def __init__(self, master):
         self.frame = Frame(master)
         self.frame.pack()
         self.master = master
-        master.title("Non-Adherence and PCP Status PyCCI")
-        self.indicatorvalues = dict(odict([("Has PCP", 0),
-                                           ("Does not have PCP", 0),
-                                           ("Ambiguity in PCP status", 0),
+        master.title("PyCCI")
+        self.indicatorvalues = dict(odict([("None", 0),
                                            ("Non-Adherence", 0),
-                                           ("Unsure about Non-Adherence", 0)]).items())
+                                           ("Obesity", 0),
+                                           ("Developmental Delay/Retardation", 0),
+                                           ("Advanced Heart Disease", 0),
+                                           ("Advanced Lung Disease", 0),
+                                           ("Schizophrenia and \nother Psychiatric Disorders", 0),
+                                           ("Alcohol Abuse", 0),
+                                           ("Other Substance Abuse", 0),
+                                           ("Chronic Pain/Fibromyalgia", 0),
+                                           ("Chronic Neurological/Dystrophies", 0),
+                                           ("Advanced Cancer", 0),
+                                           ("Depression", 0),
+                                           ("Dementia", 0),
+                                           ("Unsure", 0)]).items())
                                            #add or take away indicators here and also in writer()
         self.path = 1
-
         self.total = 0
         self.rowtotal = 0
-
         self.count = 0 #Initialize count to zero and refer to it later in crane()   #S
 
         self.header = []#Hold the header of the csv to grab indices of
@@ -214,8 +396,8 @@ class App:
         self.notetype = []
         self.storage = []
         self.SID = []
-        self.row_id = []
 
+        self.reason = [] #Reason for unsure, if necessary
 
         self.mem = 0
         self.body()
@@ -231,7 +413,7 @@ class App:
             self.path += -1
             if self.path == 0:
                 self.file = tkFileDialog.askopenfilename()
-                self.newfile = self.file[:-4] + "ResultsCCIvA.csv"
+                self.newfile = self.file[:-4] + "ResultsCCIv3.csv"
                 with open(self.file, 'r+') as self.f:
                     self.mycsv = csv.reader(self.f)
                     #Grab the data and hold it in memory
@@ -242,11 +424,6 @@ class App:
                             self.chartDate.append(self.row[self.header.index("chartdate")])
                         except Exception:
                             self.chartDate.append("N/A")
-                            sys.exc_clear()
-                        try:
-                            self.row_id.append(self.row[self.header.index("row_id")])
-                        except Exception:
-                            self.row_id.append("N/A")
                             sys.exc_clear()
                         try:
                             self.chartDate.append(self.row[self.header.index("Chart.time")])
@@ -266,14 +443,14 @@ class App:
                                 self.hAdm.append(self.row[self.header.index("hadm.id")])
                             except Exception:
                                 sys.exc_clear()
-                        self.icuID.append("N/A")#ICU ID is deprecated
+                        self.icuID.append(self.row[2])#ICU ID is deprecated
                         self.chartID.append(self.row[3])
                         try:
-                            self.category.append(self.row[self.header.index("Category")])
+                            self.category.append(self.row[header.index("Category")])
                         except Exception:
                             self.category.append("N/A")
                             sys.exc_clear()
-                        self.notetype.append(self.row[self.header.index("category")])#Quick fix
+                        self.notetype.append(self.row[5])
                         self.dSum.append(self.row[self.header.index("text")])
 
 
@@ -305,10 +482,10 @@ class App:
                 else:
                     self.crane(0)
         elif buttonArg == "Review":
-            self.path += -1
+            self.path += -1 ### Here do the try method!
             if self.path == 0:
                 self.file = tkFileDialog.askopenfilename()
-                self.newfile = self.file[:-4] + "ResultsCCIvA.csv"
+                self.newfile = self.file[:-4] + "ResultsCCIv3.csv"
                 with open(self.file, 'r+') as self.f:
                     self.mycsv = csv.reader(self.f)
                     #Grab the data and hold it in memory
@@ -321,11 +498,6 @@ class App:
                             self.chartDate.append("N/A")
                             sys.exc_clear()
                         try:
-                            self.row_id.append(self.row[self.header.index("row_id")])
-                        except Exception:
-                            self.row_id.append("N/A")
-                            sys.exc_clear()
-                        try:
                             self.chartDate.append(self.row[self.header.index("Chart.time")])
                         except Exception:
                             self.chartDate.append("N/A")
@@ -335,7 +507,7 @@ class App:
                         except Exception:
                             sys.exc_clear()
                         self.icuSeq.append(self.row[5])
-                        self.subjID.append(self.row[self.header.index("subject.id")])
+                        self.subjID.append(self.row[self.header.index("Subject ID")])
                         if "Hospital.Admission.ID" in self.header:
                             self.hAdm.append(self.row[self.header.index("Hospital.Admission.ID")])
                         else:
@@ -343,15 +515,25 @@ class App:
                                 self.hAdm.append(self.row[self.header.index("hadm.id")])
                             except Exception:
                                 sys.exc_clear()
-                        self.icuID.append("N/A")#ICU ID is deprecated
+                        self.icuID.append(self.row[2])#ICU ID is deprecated in MIMIC III
                         self.chartID.append(self.row[3])
                         try:
-                            self.category.append(self.row[self.header.index("Category")])
+                            self.category.append(self.row[header.index("Category")])
                         except Exception:
                             self.category.append("N/A")
                             sys.exc_clear()
-                        self.notetype.append(self.row[self.header.index("category")])#Quick fix
-                        self.dSum.append(self.row[self.header.index("text")])
+                        try:
+                            self.notetype.append(self.row[5])
+                        except Exception:
+                            sys.exc_clear()
+                        try:
+                            self.dSum.append(self.row[self.header.index("text")])
+                        except Exception:
+                            sys.exc_clear()
+                        try:
+                            self.reason.append(self.row[self.header.index("reason")])
+                        except Exception:
+                            sys.exc_clear()
 
 
                     self.pttext.config(state=NORMAL)
@@ -362,8 +544,10 @@ class App:
                     self.rowtotal = len(self.subjID)
                     self.ptnumber.config(text = str(self.total))
                     self.pttotal.config(text = str(self.rowtotal))
-                    #Hide subject ID from annotator
-                    #self.ptsubID.config(text = str(self.subjID[self.total]))
+
+                    #Add conditional here?
+                    self.reasonID.config(text = str(self.reason[self.total]))
+
                     self.pthAdm.config(text = str(self.hAdm[self.total]))
                     self.ptnotetype.config(text = str(self.notetype[self.total]))
                     self.pttext.config(state=NORMAL)
@@ -371,17 +555,18 @@ class App:
                     self.pttext.insert(END, self.dSum[self.total])
                     self.pttext.config(state=DISABLED)
 
-
+                #Results file
                 if os.path.isfile(self.newfile) == True:
                     with open(self.newfile, 'r+') as self.newf:
                         self.storage = csv.reader(self.newf)
                         for line in self.storage:
                             self.SID.append(line[0])
                         self.mem = len(self.SID)
+                        #If there is a results file, begin where it was left off
                         self.crane(self.mem)
+                #In the absence of a results file, begin at the first observation
                 else:
                     self.crane(0)
-
 
 
     ## ###
@@ -396,9 +581,9 @@ class App:
                 self.total = 1
             self.ptnumber.config(text = str(self.total))
             self.pttotal.config(text = str(self.rowtotal))
-
-
-        #self.ptsubID.config(text = str(self.subjID[self.total]))
+        #
+        #Add a conditional here
+        self.ptsubID.config(text = str(self.reason[self.total]))
         self.pthAdm.config(text = str(self.hAdm[self.total]))
         self.ptnotetype.config(text = str(self.notetype[self.total]))
 
@@ -417,95 +602,78 @@ class App:
 
     def writer(self):
         #If the file does not exist, add the header
-        if "row_id" or "text" in self.header:#Need to fix this-- no need for else anymore...
-            if os.path.isfile(self.newfile) == False:
-                with open(self.newfile, 'w') as csvfile:
-                    datawriter = csv.writer(csvfile, delimiter=',')
-                    datawriter.writerow(['Subject ID']
-                                        + ['Hospital Admission ID']
-                                        + ['ICU ID']
-                                        + ['Note Type']
-                                        + ['Chart time']
-                                        + ['Category']
-                                        + ['Real time']
-                                        + ['Non-Adherence']
-                                        + ['Has PCP']
-                                        + ['Does not have PCP']
-                                        + ['Ambiguity in PCP status']
-                                        + ['Unsure about Non-Adherence']
-                                        + ['Reason']
-                                        + ['text']
-                                        + ['row_id'])
-            else:
-                #If no indicator is ticked, pass
-                if bool(self.indicatorvalues['Non-Adherence'].get()) == False \
-                + bool(self.indicatorvalues['Has PCP'].get()) == False \
-                + bool(self.indicatorvalues['Does not have PCP'].get()) == False \
-                + bool(self.indicatorvalues['Ambiguity in PCP status'].get()) == False \
-                + bool(self.indicatorvalues['Unsure about Non-Adherence'].get()) == False:
-                    pass
-                #If an indicator is ticked
-                else:
-                    with open(self.newfile, 'a') as csvfile:
-                        datawriter = csv.writer(csvfile, delimiter=',')
-                        datawriter.writerow([str(self.subjID[self.total])]
-                                    + [str(self.hAdm[self.total])]
-                                    + [str(self.icuID[self.total])]
-                                    + [str(self.notetype[self.total])]
-                                    + [str(self.chartID[self.total])]
-                                    + [str(self.icuSeq[self.total])]
-                                    + [str(self.category[self.total])]
-                                    + [str(self.indicatorvalues['Non-Adherence'].get())]
-                                    + [str(self.indicatorvalues['Has PCP'].get())]
-                                    + [str(self.indicatorvalues['Does not have PCP'].get())]
-                                    + [str(self.indicatorvalues['Ambiguity in PCP status'].get())]
-                                    + [str(self.indicatorvalues['Unsure about Non-Adherence'].get())]
-                                    + [str(self.unsureReason.get())]
-                                    + [str(self.dSum[self.total])]
-                                    + [str(self.row_id[self.total])])
-        else:
-            if os.path.isfile(self.newfile) == False:
-                with open(self.newfile, 'w') as csvfile:
-                    datawriter = csv.writer(csvfile, delimiter=',')
-                    datawriter.writerow(['Subject ID']
-                                        + ['Hospital Admission ID']
-                                        + ['ICU ID']
-                                        + ['Note Type']
-                                        + ['Chart time']
-                                        + ['Category']
-                                        + ['Real time']
-                                        + ['Non-Adherence']
-                                        + ['Has PCP']
-                                        + ['Does not have PCP']
-                                        + ['Ambiguity in PCP status']
-                                        + ['Unsure about Non-Adherence']
-                                        + ['Reason'])
+        if os.path.isfile(self.newfile) == False:
+            with open(self.newfile, 'w') as csvfile:
+                datawriter = csv.writer(csvfile, delimiter=',')
+                datawriter.writerow(['Subject ID']
+                                    + ['Hospital Admission ID']
+                                    + ['ICU ID']
+                                    + ['Note Type']
+                                    + ['Chart time']
+                                    + ['Category']
+                                    + ['Real time']
+                                    + ['None']
+                                    + ['Obesity']
+                                    + ['Non-Adherence']
+                                    + ['Developmental Delay/Retardation']
+                                    + ['Advanced Heart Disease']
+                                    + ['Advanced Lung Disease']
+                                    + ['Schizophrenia and other Psychiatric Disorders']
+                                    + ['Alcohol Abuse']
+                                    + ['Other Substance Abuse']
+                                    + ['Chronic Pain/Fibromyalgia']
+                                    + ['Chronic Neurological/Dystrophies']
+                                    + ['Advanced Cancer']
+                                    + ['Depression']
+                                    + ['Dementia']
+                                    + ['Unsure']
+                                    + ['Reason'])
 
+        else:
+            #If no indicator is ticked, pass
+            if bool(self.indicatorvalues['None'].get()) == False \
+           + bool(self.indicatorvalues["Obesity"].get()) == False \
+           + bool(self.indicatorvalues['Non-Adherence'].get()) == False \
+           + bool(self.indicatorvalues['Developmental Delay/Retardation'].get()) == False \
+           + bool(self.indicatorvalues['Advanced Heart Disease'].get()) == False \
+           + bool(self.indicatorvalues['Advanced Lung Disease'].get()) == False \
+           + bool(self.indicatorvalues['Schizophrenia and \nother Psychiatric Disorders'].get()) == False \
+           + bool(self.indicatorvalues['Alcohol Abuse'].get()) == False \
+           + bool(self.indicatorvalues['Other Substance Abuse'].get()) == False \
+           + bool(self.indicatorvalues['Chronic Pain/Fibromyalgia'].get()) == False \
+           + bool(self.indicatorvalues['Chronic Neurological/Dystrophies'].get()) == False \
+           + bool(self.indicatorvalues['Advanced Cancer'].get()) == False \
+           + bool(self.indicatorvalues['Depression'].get()) == False \
+           + bool(self.indicatorvalues['Dementia'].get()) == False \
+           + bool(self.indicatorvalues['Unsure'].get()) == False:
+                pass
+            #If an indicator is ticked
             else:
-                #If no indicator is ticked, pass
-                if bool(self.indicatorvalues['Non-Adherence'].get()) == False \
-                + bool(self.indicatorvalues['Has PCP'].get()) == False \
-                + bool(self.indicatorvalues['Does not have PCP'].get()) == False \
-                + bool(self.indicatorvalues['Ambiguity in PCP status'].get()) == False \
-                + bool(self.indicatorvalues['Unsure about Non-Adherence'].get()) == False:
-                    pass
-                #If an indicator is ticked
-                else:
-                    with open(self.newfile, 'a') as csvfile:
-                        datawriter = csv.writer(csvfile, delimiter=',')
-                        datawriter.writerow([str(self.subjID[self.total])]
-                                    + [str(self.hAdm[self.total])]
-                                    + [str(self.icuID[self.total])]
-                                    + [str(self.notetype[self.total])]
-                                    + [str(self.chartID[self.total])]
-                                    + [str(self.icuSeq[self.total])]
-                                    + [str(self.category[self.total])]
-                                    + [str(self.indicatorvalues['Non-Adherence'].get())]
-                                    + [str(self.indicatorvalues['Has PCP'].get())]
-                                    + [str(self.indicatorvalues['Does not have PCP'].get())]
-                                    + [str(self.indicatorvalues['Ambiguity in PCP status'].get())]
-                                    + [str(self.indicatorvalues['Unsure about Non-Adherence'].get())]
-                                    + [str(self.unsureReason.get())])
+               with open(self.newfile, 'a') as csvfile:
+                datawriter = csv.writer(csvfile, delimiter=',')
+                datawriter.writerow([str(self.subjID[self.total])]
+                                + [str(self.hAdm[self.total])]
+                                + [str(self.icuID[self.total])]
+                                + [str(self.notetype[self.total])]
+                                + [str(self.chartID[self.total])]
+                                + [str(self.icuSeq[self.total])]
+                                + [str(self.category[self.total])]
+                                + [str(self.indicatorvalues['None'].get())]
+                                + [str(self.indicatorvalues['Obesity'].get())]
+                                + [str(self.indicatorvalues['Non-Adherence'].get())]
+                                + [str(self.indicatorvalues['Developmental Delay/Retardation'].get())]
+                                + [str(self.indicatorvalues['Advanced Heart Disease'].get())]
+                                + [str(self.indicatorvalues['Advanced Lung Disease'].get())]
+                                + [str(self.indicatorvalues['Schizophrenia and \nother Psychiatric Disorders'].get())]
+                                + [str(self.indicatorvalues['Alcohol Abuse'].get())]
+                                + [str(self.indicatorvalues['Other Substance Abuse'].get())]
+                                + [str(self.indicatorvalues['Chronic Pain/Fibromyalgia'].get())]
+                                + [str(self.indicatorvalues['Chronic Neurological/Dystrophies'].get())]
+                                + [str(self.indicatorvalues['Advanced Cancer'].get())]
+                                + [str(self.indicatorvalues['Depression'].get())]
+                                + [str(self.indicatorvalues['Dementia'].get())]
+                                + [str(self.indicatorvalues['Unsure'].get())]
+                                + [str(self.unsureReason.get())])
 
 #                print('\n' + str(self.hAdm[self.total]) + str(self.dSum[self.total] + '\n' + str(self.indicatorvalues['Unsure'].get())))
 
@@ -515,77 +683,23 @@ class App:
         ## ###
 
         self.unsureReason = StringVar()
-        self.unsureText = Entry(self.checkframe, width = 25, textvariable = self.unsureReason)
+        self.unsureText = Entry(self.checkframe, textvariable = self.unsureReason)
         self.unsureReason.set("Reason for Unsure here.")
         self.unsureText.pack(anchor = W, pady = 5)
 
-
-        myvar = IntVar()#self?
-        myvar.set(self.indicatorvalues["Has PCP"])
-        self.indicatorvalues["Has PCP"] = myvar
-        l = Checkbutton(self.checkframe,
-                text = "Has PCP",
-                variable = myvar,
-                onvalue = 1,
-                offvalue = 0,
-                height = 1,
-                pady = 5,
-                justify = LEFT)
-        l.pack(anchor = W)
-
-
-        myvar = IntVar()#self?
-        myvar.set(self.indicatorvalues["Does not have PCP"])
-        self.indicatorvalues["Does not have PCP"] = myvar
-        l = Checkbutton(self.checkframe,
-            text = "Does not have PCP",
-            variable = myvar,
-            onvalue = 1,
-            offvalue = 0,
-            height = 1,
-            pady = 5,
-            justify = LEFT)
-        l.pack(anchor = W)
-
-        myvar = IntVar()#self?
-        myvar.set(self.indicatorvalues["Ambiguity in PCP status"])
-        self.indicatorvalues["Ambiguity in PCP status"] = myvar
-        l = Checkbutton(self.checkframe,
-            text = "Ambiguity in PCP status",
-            variable = myvar,
-            onvalue = 1,
-            offvalue = 0,
-            height = 1,
-            pady = 5,
-            justify = LEFT)
-        l.pack(anchor = W)
-
-        myvar = IntVar()#self?
-        myvar.set(self.indicatorvalues["Non-Adherence"])
-        self.indicatorvalues["Non-Adherence"] = myvar
-        l = Checkbutton(self.checkframe,
-            text = "Non-Adherence",
-            variable = myvar,
-            onvalue = 1,
-            offvalue = 0,
-            height = 1,
-            pady = 5,
-            justify = LEFT)
-        l.pack(anchor = W)
-
-        myvar = IntVar()#self?
-        myvar.set(self.indicatorvalues["Unsure about Non-Adherence"])
-        self.indicatorvalues["Unsure about Non-Adherence"] = myvar
-        l = Checkbutton(self.checkframe,
-            text = "Unsure about Non-Adherence",
-            variable = myvar,
-            onvalue = 1,
-            offvalue = 0,
-            height = 1,
-            pady = 5,
-            justify = LEFT)
-        l.pack(anchor = W)
-
+        for machine in self.indicatorvalues:
+            myvar = IntVar()
+            myvar.set(self.indicatorvalues[machine])
+            self.indicatorvalues[machine] = myvar
+            l = Checkbutton(self.checkframe,
+                            text=machine,
+                            variable=myvar,
+                            onvalue=1,
+                            offvalue=0,
+                            height=1,
+                            pady=5,
+                            justify = LEFT)
+            l.pack(anchor = W)
 
 
     ## ###
@@ -621,6 +735,24 @@ class App:
                                  command = lambda: self.openfile("Annotate"),
                                  padx=15)
         self.openbutton.place(anchor = W, x = 20, rely = 0.25)
+
+
+
+
+
+
+
+
+        ## ###
+        ##
+        self.reviewButton = Button(self.title,
+                                   text = "Review CSV",
+                                   command = lambda: self.openfile("Review"),
+                                   padx=25)
+
+        self.reviewButton.place(anchor = W, x = 20, rely = 0.75)
+        ##
+        ## ###
 
 
 
@@ -679,7 +811,7 @@ class App:
         self.panel = Label(self.title, image = self.photos)
         self.panel.pack(side = RIGHT, padx=10)
 
-        Label(self.title, text = "\t\tNon-Adherence and PCP Status GUI",
+        Label(self.title, text = "\t\tChronic Critically Ill Patient GUI",
               font = self.titlefont,
               fg="dodgerblue4").pack()
 
@@ -745,6 +877,25 @@ class App:
 
 
 
+
+
+
+
+
+        self.reason_ = Label(self.ptframeinfo, text = "Reason for Unsure:", fg="red")
+        self.reason_.grid(row = 1, column = 0, sticky = E)
+        self.reasonID = Label(self.ptframeinfo, text = " ", font = self.h3font)
+        self.reasonID.grid(row = 1, column = 1, sticky = W)
+
+        ##
+        # Reason for unsure
+        ##
+
+        #Create a frame for this?
+
+        #self.unsureText = Label(self.reviewerInfo, text = )
+
+
         self.phAdm_ = Label(self.ptframeinfo, text = "Hospital Admission ID:", fg="dodgerblue4")
         self.phAdm_.grid(row = 2, column = 0, sticky = E)
         self.pthAdm = Label(self.ptframeinfo, text = " ", font = self.h3font)
@@ -778,9 +929,7 @@ class App:
         #Scrollbar!
         self.ptscroll = Scrollbar(self.ptframe)
         self.ptscroll.pack(side = RIGHT, fill = Y)
-
-        #https://stackoverflow.com/questions/21873195/readonly-tkinter-text-widget
-        self.pttext = ScrolledText(self.ptframe,
+        self.pttext = Text(self.ptframe,
                            height=300,
                            width=400,
                            wrap=WORD,
@@ -798,15 +947,17 @@ class App:
         self.pttext.insert(END, "Please use the ''Open CSV'' button to open the .csv file provided to you, "
                                 + "for example:\n'dischargeSummaries29JUN16.csv'\n"
                                 + "This will create a 'results' file within the same directory, in this "
-                                + "case the results file would be:\n 'dischargeSummaries29JUN16ResultsCCIvA.csv'")
+                                + "case the results file would be:\n 'dischargeSummaries29JUN16ResultsCCIv3.csv'")
+
+
+
 
         self.pttext.config(state=DISABLED)
-        self.pttext.bind("<1>", lambda event: self.pttext.focus_set())
-
-        ##Note: Changed to ScrolledText (instead of text), and bound event: focus_set() to it.
 
 
-        #Checkbuttons
+
+
+    #Checkbuttons
         self.checkframe = LabelFrame(self.rightpane, text="Indicators",
                                      font=self.boldfont,
                                      padx = 10,
@@ -843,6 +994,7 @@ def info():
 ### Menu does not need to be part of the class
 menubar = Menu(root)
 filemenu = Menu(menubar, tearoff=0)
+#filemenu.add_command(label="Open CSV")#, command=openfile)
 menubar.add_cascade(label="File", menu=filemenu)
 helpmenu = Menu(menubar, tearoff=0)
 helpmenu.add_command(label="About", command=about)
