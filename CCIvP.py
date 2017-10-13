@@ -193,6 +193,7 @@ class App:
                                            ("Family Meetings", 0),
                                            ("Code Status Limitations", 0),
                                            ("Palliative Care Involvement", 0),
+                                           ("Ambiguous", 0),
                                            ("None", 0)]).items())
         # add or take away indicators here and also in writer()
         self.path = 1
@@ -381,6 +382,7 @@ class App:
                                 + ["Code Status Limitations Text"]
                                 + ["Palliative Care Involvement"]
                                 + ["Palliative Care Involvement Text"]
+                                + ["Ambiguous"]
                                 + ["None"]
                                 + ["STAMP"])
 
@@ -390,6 +392,7 @@ class App:
                 + bool(self.indicatorvalues["Family Meetings"].get()) == False \
                 + bool(self.indicatorvalues["Code Status Limitations"].get()) == False \
                 + bool(self.indicatorvalues["Palliative Care Involvement"].get()) == False \
+                + bool(self.indicatorvalues["Ambiguous"].get()) == False \
                 + bool(self.indicatorvalues["None"].get()) == False:
                     pass
                 # If an indicator is ticked
@@ -412,6 +415,7 @@ class App:
                                             + [str(self.codeStatusText.get())]
                                             + [str(self.indicatorvalues["Palliative Care Involvement"].get())]
                                             + [str(self.palCareInvolveText.get())]
+                                            + [str(self.indicatorvalues["Ambiguous"].get())]
                                             + [str(self.indicatorvalues["None"].get())]
                                             #+ [str(self.unsureReason.get())])
                                             + [str(time.asctime(time.localtime(time.time())))])
@@ -502,6 +506,19 @@ class App:
         self.palCareInvolveBox = Entry(self.checkframe, width=30, textvariable=self.palCareInvolveText)
         self.palCareInvolveText.set("Palliative Care Involvement Text")
         self.palCareInvolveBox.pack(anchor=W, pady=5)
+
+        myvar = IntVar()  # self?
+        myvar.set(self.indicatorvalues["Ambiguous"])
+        self.indicatorvalues["Ambiguous"] = myvar
+        l = Checkbutton(self.checkframe,
+                        text="Ambiguous",
+                        variable=myvar,
+                        onvalue=1,
+                        offvalue=0,
+                        height=1,
+                        pady=5,
+                        justify=LEFT)
+        l.pack(anchor=W)
 
         myvar = IntVar()  # self?
         myvar.set(self.indicatorvalues["None"])
