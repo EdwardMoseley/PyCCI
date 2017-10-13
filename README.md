@@ -40,3 +40,7 @@ After annotating the notes, you will notice that you have a SampleDatResultsCCIv
 To contact the admin of this repo, please email:
 Etmoseley@yahoo.com
 
+Acknowledgements:
+Kai-ou Tang for front end advise and coding.
+William Labadie Moseley for development.
+
