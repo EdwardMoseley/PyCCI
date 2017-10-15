@@ -52,6 +52,11 @@ class MainApplication(Frame):
         else:
             self.crane(0, self.results_filename)
 
+    def resource_path(self, relative_path):
+        if hasattr(sys, '_MEIPASS'):
+            return os.path.join(sys._MEIPASS, relative_path)
+        return os.path.join(os.path.abspath("."), relative_path)
+
     def crane(self, delta, results_filename):
         '''
         Called whenever you press back or next
@@ -100,7 +105,7 @@ class MainApplication(Frame):
                                  command=self.openfile,
                                  padx=15)
         self.openbutton.place(anchor=W, x=20, rely=0.25)
-        image = Image.open('CCI.png')
+        image = Image.open(self.resource_path('CCI.png'))
         photo = ImageTk.PhotoImage(image)
       
         self.panel = Label(self.title, image=photo)
