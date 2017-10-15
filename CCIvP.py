@@ -7,6 +7,7 @@ import tkFont
 import tkFileDialog
 from ScrolledText import ScrolledText
 import time
+import pandas as pd
 # Partial implementation of odict library because Python 2.X
 # (https://github.com/bluedynamics/odict/blob/master/src/odict/pyodict.py)
 # Python Software Foundation License
@@ -224,100 +225,99 @@ class App:
         self.body()
         self.library()
 
-    ## ###
-    ## openfile() will
-    ## ###
+    def retrieve_line(self, row):
+        # If the header is empty then the row contains header data
+        if len(self.header) == 0:
+            self.header = row
 
-    def openfile(self, buttonArg):
-        print(buttonArg)
+        try:
+            self.TEXT.append(row[self.header.index("TEXT")])
+        except Exception:
+            self.TEXT.append("N/A")
+            sys.exc_clear()
+
+        try:
+            self.SUBJECT_ID.append(row[self.header.index("SUBJECT_ID")])
+        except Exception:
+            self.SUBJECT_ID.append("N/A")
+            sys.exc_clear()
+
+        try:
+            self.HADM_ID.append(row[self.header.index("HADM_ID")])
+        except Exception:
+            self.HADM_ID.append("N/A")
+            sys.exc_clear()
+
+        try:
+            self.CHARTDATE.append(row[self.header.index("CHARTDATE")])
+        except Exception:
+            self.CHARTDATE.append("N/A")
+            sys.exc_clear()
+
+        try:
+            self.CATEGORY.append(row[self.header.index("CATEGORY")])
+        except Exception:
+            self.CHARTDATE.append("N/A")
+            sys.exc_clear()
+
+        try:
+            self.DESCRIPTION.append(row[self.header.index("DESCRIPTION")])
+        except Exception:
+            self.DESCRIPTION.append("N/A")
+            sys.exc_clear()
+
+        try:
+            self.CGID.append(row[self.header.index("CGID")])
+        except Exception:
+            self.CGID.append("N/A")
+            sys.exc_clear()
+
+        try:
+            self.ISERROR.append(row[self.header.index("ISERROR")])
+        except Exception:
+            self.ISERROR.append("N/A")
+            sys.exc_clear()
+
+        try:
+            self.ROW_ID.append(row[self.header.index("ROW_ID")])
+        except Exception:
+            self.ROW_ID.append("N/A")
+            sys.exc_clear()
+
+    def openfile(self):
         if buttonArg == "Annotate":
             self.path += -1
             if self.path == 0:
                 self.file = tkFileDialog.askopenfilename()
                 self.newfile = self.file[:-4] + "Results.csv"
-                with open(self.file, 'r+') as self.f:
-                    self.mycsv = csv.reader(self.f)
+                with open(self.file, 'r+') as f:
+                    self.mycsv = csv.reader(f)
                     # Grab the data and hold it in memory
-                    for self.row in self.mycsv:  ## For loop giving cell all over its values
-
-                        # If the header is empty then the row contains header data
-                        if len(self.header) == 0:
-                            self.header = self.row
-
-                        try:
-                            self.TEXT.append(self.row[self.header.index("TEXT")])
-                        except Exception:
-                            self.TEXT.append("N/A")
-                            sys.exc_clear()
-
-                        try:
-                            self.SUBJECT_ID.append(self.row[self.header.index("SUBJECT_ID")])
-                        except Exception:
-                            self.SUBJECT_ID.append("N/A")
-                            sys.exc_clear()
-
-                        try:
-                            self.HADM_ID.append(self.row[self.header.index("HADM_ID")])
-                        except Exception:
-                            self.HADM_ID.append("N/A")
-                            sys.exc_clear()
-
-                        try:
-                            self.CHARTDATE.append(self.row[self.header.index("CHARTDATE")])
-                        except Exception:
-                            self.CHARTDATE.append("N/A")
-                            sys.exc_clear()
-
-                        try:
-                            self.CATEGORY.append(self.row[self.header.index("CATEGORY")])
-                        except Exception:
-                            self.CHARTDATE.append("N/A")
-                            sys.exc_clear()
-
-                        try:
-                            self.DESCRIPTION.append(self.row[self.header.index("DESCRIPTION")])
-                        except Exception:
-                            self.DESCRIPTION.append("N/A")
-                            sys.exc_clear()
-
-                        try:
-                            self.CGID.append(self.row[self.header.index("CGID")])
-                        except Exception:
-                            self.CGID.append("N/A")
-                            sys.exc_clear()
-
-                        try:
-                            self.ISERROR.append(self.row[self.header.index("ISERROR")])
-                        except Exception:
-                            self.ISERROR.append("N/A")
-                            sys.exc_clear()
-
-                        try:
-                            self.ROW_ID.append(self.row[self.header.index("ROW_ID")])
-                        except Exception:
-                            self.ROW_ID.append("N/A")
-                            sys.exc_clear()
-
-                    self.pttext.config(state=NORMAL)
-                    self.pttext.delete(1.0, END)
-                    self.pttext.insert(END, self.TEXT[self.total])
-                    self.pttext.config(state=DISABLED)
-
-                    self.rowtotal = len(self.SUBJECT_ID)
-                    self.ptnumber.config(text=str(self.total))
-                    self.pttotal.config(text=str(self.rowtotal))
-                    # Hide subject ID from annotator
-                    # self.ptsubID.config(text = str(self.SUBJECT_ID[self.total]))
+                    for row in self.mycsv:  ## For loop giving cell all over its values
+                        self.retrieve_line(row)
 
 
-                    self.pthAdm.config(text=str(self.HADM_ID[self.total]))
-                    self.ptnotetype.config(text=str(self.CATEGORY[self.total]))
-                    self.pttext.config(state=NORMAL)
-                    self.pttext.delete(1.0, END)
-                    self.pttext.insert(END, self.TEXT[self.total])
-                    self.pttext.config(state=DISABLED)
+                
+                # self.total increments what the text
 
-                # If the file already exists, open it
+                self.rowtotal = len(self.SUBJECT_ID)
+                self.ptnumber.config(text=str(self.total))
+                self.pttotal.config(text=str(self.rowtotal))
+                # Hide subject ID from annotator
+                # self.ptsubID.config(text = str(self.SUBJECT_ID[self.total]))
+
+                self.pthAdm.config(text=str(self.HADM_ID[self.total]))
+                self.ptnotetype.config(text=str(self.CATEGORY[self.total]))
+
+                # Box that displays patient text
+                self.pttext.config(state=NORMAL)
+                self.pttext.delete(1.0, END)
+                self.pttext.insert(END, self.TEXT[self.total])
+                self.pttext.config(state=DISABLED)
+
+                # If the file already exists, open it and continue at the spot you were,
+                # makes it easier to continue on annotating results
+                # self.newfile is the results file
                 if os.path.isfile(self.newfile) == True:
                     with open(self.newfile, 'r+') as self.newf:
                         # Storage is used to provide an integer to mem
@@ -333,7 +333,7 @@ class App:
     ## ###
     ## crane calls writer() and resetbuttons()
     ## ###
-
+    # called whenever you press back or next
     def crane(self, x):  ## This is the incrementer function
         if self.path == 0:
             self.writer()
@@ -408,7 +408,7 @@ class App:
                                             + [str(self.CGID[self.total])]
                                             + [str(self.TEXT[self.total])]
                                             + [str(self.indicatorvalues["Care Preferences"].get())]
-                                            + [str(self.carePrefText.get())]
+                                            + [str(self.carePrefText.get())] # use this to retrieve character positions
                                             + [str(self.indicatorvalues["Family Meetings"].get())]
                                             + [str(self.famMeetingText.get())]
                                             + [str(self.indicatorvalues["Code Status Limitations"].get())]
@@ -424,7 +424,7 @@ class App:
         ## ###
         ## library() will create the checkbuttons and text entry box
         ## ###
-
+    # part of the gui that covers annotations
     def library(self):
         myvar = IntVar()  # self?
         myvar.set(self.indicatorvalues["Care Preferences"])
@@ -568,7 +568,7 @@ class App:
 
         self.openbutton = Button(self.title,
                                  text="Open CSV",
-                                 command=lambda: self.openfile("Annotate"),
+                                 command=lambda: self.openfile(),
                                  padx=15)
         self.openbutton.place(anchor=W, x=20, rely=0.25)
 
