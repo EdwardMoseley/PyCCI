@@ -13,11 +13,14 @@ from Tkinter import *
 
 
 def main(): 
-    root = Tk()
-    MainApplication(root).pack(side="top", fill="both", expand=True)
-    menubar = MenuBar(root)
-    root.config(menu=menubar)
-    root.mainloop()
+	title = "Palliative Care"
+	textbox_labels = ["Care Preferences","Family Meetings", "Code Status Limitations", "Palliative Care Involvement"]
+	checkbox_labels = ["Ambiguous", "None"]
+	root = Tk()
+	MainApplication(root, title, textbox_labels, checkbox_labels).pack(side="top", fill="both", expand=True)
+	menubar = MenuBar(root)
+	root.config(menu=menubar)
+	root.mainloop()
 
 if __name__ == '__main__':
     main()

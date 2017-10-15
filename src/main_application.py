@@ -13,13 +13,14 @@ from PIL import ImageTk, Image
 
 
 class MainApplication(Frame):
-    def __init__(self, master):
+    def __init__(self, master, title, textbox_labels, checkbox_labels):
         self.master = master
-        self.master.title("Palliative Care PyCCI")
+        self.title = title
+        self.master.title(self.title + " PyCCI")
         Frame.__init__(self, self.master)
        
         # Define variables
-        self.title_text = "\t\tPalliative Care Indications GUI"
+        self.title_text = "\t\t" + self.title + " Indications GUI"
         self.current_row_index = 0
         self.data_df = pd.DataFrame()
         
@@ -27,7 +28,7 @@ class MainApplication(Frame):
         self.define_fonts()
         self.create_body()
 
-        self.annotation_panel = AnnotationPanel(master, self.checkframe)
+        self.annotation_panel = AnnotationPanel(master, self.checkframe, textbox_labels, checkbox_labels)
         self.annotation_panel.pack()
 
     def define_fonts(self):
@@ -40,7 +41,6 @@ class MainApplication(Frame):
         file = tkFileDialog.askopenfilename()
         if not file:
             return
-        # TODO: check that a file has been provided
         self.data_df = pd.read_csv(file)
 
         # If the file already exists, open it and continue at the spot you were,
@@ -57,6 +57,10 @@ class MainApplication(Frame):
         Called whenever you press back or next
         '''
         num_notes = self.data_df.shape[0]
+        is_saved = self.annotation_panel.save_annotations(self.data_df, self.current_row_index, results_filename)
+        if not is_saved:
+            return
+
         self.current_row_index += delta
         if self.current_row_index < 1:
             self.current_row_index = 0
@@ -64,10 +68,6 @@ class MainApplication(Frame):
         if self.current_row_index > num_notes-1:
             self.current_row_index = num_notes-1
 
-        is_saved = self.annotation_panel.save_annotations(self.data_df, self.current_row_index, results_filename)
-        if not is_saved:
-            self.current_row_index -= 1
-        
         admission_id = self.data_df['HADM_ID'].iloc[self.current_row_index]
         note_category = self.data_df['CATEGORY'].iloc[self.current_row_index]
         clin_text = self.data_df['TEXT'].iloc[self.current_row_index]
@@ -84,7 +84,7 @@ class MainApplication(Frame):
         # Box that displays patient text
         self.pttext.config(state=NORMAL)
         self.pttext.delete(1.0, END)
-        self.pttext.insert(END, clin_text)
+        self.pttext.insert(END, clin_text.replace("\r\n", "\n"))
         self.pttext.config(state=DISABLED)
 
     def create_body(self):
@@ -192,18 +192,8 @@ class MainApplication(Frame):
         self.button2.grid(row=0, column=2, padx=2, pady=2)
 
         # https://stackoverflow.com/questions/21873195/readonly-tkinter-text-widget
-        self.pttext = ScrolledText(self.ptframe,
-                                   height=300,
-                                   width=400,
-                                   wrap=WORD,
-                                   font=self.textfont,
-                                   spacing1=2,
-                                   spacing2=2,
-                                   spacing3=3,
-                                   padx=15,
-                                   pady=15)
+        self.pttext = ScrolledText(self.ptframe, font=self.textfont)
         self.pttext.pack(side=BOTTOM)
-        self.pttext.config(state=NORMAL)
         self.pttext.delete(1.0, END)
         self.pttext.config(state=DISABLED)
         self.pttext.bind("<1>", lambda event: self.pttext.focus_set())

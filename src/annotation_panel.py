@@ -12,13 +12,13 @@ import tkMessageBox
 
 
 class AnnotationPanel(Frame):
-    def __init__(self, master, checkframe):
+    def __init__(self, master, checkframe, textbox_labels, checkbox_labels):
         self.master = master
         self.checkframe = checkframe
         Frame.__init__(self, self.master)
-        self.textboxes = []
-        self.textbox_labels = ["Care Preferences","Family Meetings", "Code Status Limitations", "Palliative Care Involvement"]
-        self.checkbox_labels = ["Ambiguous", "None"]
+        self.textboxes = {}
+        self.textbox_labels = textbox_labels
+        self.checkbox_labels = checkbox_labels
         self.indicator_values = {label: 0 for label in self.textbox_labels + self.checkbox_labels}
         self.create_annotation_items()
 
@@ -36,12 +36,12 @@ class AnnotationPanel(Frame):
             cehckbox = self.create_checkbox(item)
 
     def create_checkbox(self, label):
-        myvar = IntVar()
-        myvar.set(self.indicator_values[label])
-        self.indicator_values[label] = myvar
+        checkbox_val = IntVar()
+        checkbox_val.set(self.indicator_values[label])
+        self.indicator_values[label] = checkbox_val
         l = Checkbutton(self.checkframe,
                         text=label,
-                        variable=myvar,
+                        variable=checkbox_val,
                         onvalue=1,
                         offvalue=0,
                         height=1,
@@ -52,24 +52,27 @@ class AnnotationPanel(Frame):
 
     def create_textbox(self, label, checkbox):
         entry_text = StringVar()
-        entry_text.set(label + " Text")
+        original_text = label + " Text"
+        entry_text.set(original_text)
         entry = Entry(self.checkframe, width=30, textvariable=entry_text)
         entry.pack(anchor=W, pady=5)
-        entry.bind("<BackSpace>", lambda event: self.handle_backspace(event, entry_text, checkbox))
+        entry.bind("<BackSpace>", lambda event: self.handle_backspace(event, entry_text, checkbox, original_text))
         entry.bind("<Key>", lambda event: self.handle_key(event, entry_text, checkbox))
-        entry.bind("<Button-1>", lambda event: self.clear_entry(event, entry, checkbox))
-        self.textboxes.append(entry_text)
+        entry.bind("<Button-1>", lambda event: self.clear_entry(event, entry, entry_text, checkbox, original_text))
+        self.textboxes[label] = entry_text
 
-    def handle_backspace(self, event, entry_text, checkbox):
+    def handle_backspace(self, event, entry_text, checkbox, original_text):
         if len(entry_text.get()) < 2:
             checkbox.deselect()
+            entry_text.set(original_text)
 
     def handle_key(self, event, entry_text, checkbox):
         if len(event.char) > 0:
             checkbox.select()
 
-    def clear_entry(self, event, entry, checkbox):
-        entry.delete(0,END)
+    def clear_entry(self, event, entry, entry_text, checkbox, original_text):
+        if entry_text.get() == original_text:
+            entry.delete(0,END)
     
     ### Results file generation
     def save_annotations(self, data_df, row_index, results_filename):
@@ -90,7 +93,6 @@ class AnnotationPanel(Frame):
             indicator_ints = [val.get() for val in self.indicator_values.values()]
             if sum(indicator_ints) != 0:
                 results_df = pd.read_csv(results_filename, header=0, index_col=0)
-                print results_df
                 results_dict = self.generate_results_dict(data_df, row_index)
                 if results_dict == None:
                     return False
@@ -107,15 +109,22 @@ class AnnotationPanel(Frame):
         for i, item in enumerate(self.textbox_labels):
             results[item] = self.indicator_values[item].get()
             if results[item] == 1:
-                results[item + " Text"] = self.textboxes[i].get()
-                start_index = data_df['TEXT'].iloc[row_index].find(results[item + " Text"])
+                # Clean up the annotated text phrase; remove all white space characters and replace
+                # with a single space. If whitespace is on either side, removes that.
+                # Character start:end reflects this matched against a cleaned
+                # version of the original text. However, the saved annotation text phrase is the
+                # uncleaned version.
+                cleaned_annotation = " ".join(self.textboxes[item].get().split())
+                results[item + " Text"] = self.textboxes[item].get()
+                # Find annotated portion in cleaned clinical text.
+                start_index = " ".join(data_df['TEXT'].iloc[row_index].split()).find(cleaned_annotation)
                 if start_index == -1:
                     tkMessageBox.showerror("Error", "Text in " + item + " textbox is not found in original note.")
                     return None
                 if len(results[item + " Text"]) < 1:
                     tkMessageBox.showerror("Error", "No text in textbox")
                     return None
-                end_index = start_index + len(results[item+" Text"])
+                end_index = start_index + len(cleaned_annotation)
             else:
                 results[item + " Text"] = np.NaN
                 start_index = np.NaN
@@ -149,7 +158,7 @@ class AnnotationPanel(Frame):
         return header
 
     def reset_buttons(self):
-        for i, item in enumerate(self.textboxes):
-            item.set(self.textbox_labels[i] + " Text")
+        for key, val in self.textboxes.iteritems():
+            val.set(key + " Text")
         for machine in self.textbox_labels + self.checkbox_labels:
             self.indicator_values[machine].set(0)
