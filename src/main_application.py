@@ -8,16 +8,16 @@ import sys
 import time
 import tkFont
 import tkFileDialog
-from Tkinter import *
+import Tkinter as tk
 from PIL import ImageTk, Image
 
 
-class MainApplication(Frame):
+class MainApplication(tk.Frame):
     def __init__(self, master, title, textbox_labels, checkbox_labels):
         self.master = master
         self.title = title
         self.master.title(self.title + " PyCCI")
-        Frame.__init__(self, self.master)
+        tk.Frame.__init__(self, self.master)
        
         # Define variables
         self.title_text = "\t\t" + self.title + " Indications GUI"
@@ -87,51 +87,51 @@ class MainApplication(Frame):
         self.ptnotetype.config(text=note_category)
 
         # Box that displays patient text
-        self.pttext.config(state=NORMAL)
-        self.pttext.delete(1.0, END)
-        self.pttext.insert(END, clin_text.replace("\r\n", "\n"))
-        self.pttext.config(state=DISABLED)
+        self.pttext.config(state=tk.NORMAL)
+        self.pttext.delete(1.0, tk.END)
+        self.pttext.insert(tk.END, clin_text.replace("\r\n", "\n"))
+        self.pttext.config(state=tk.DISABLED)
 
     def create_body(self):
-        self.k1 = PanedWindow(self.master, height=700, width=900, orient=VERTICAL)
-        self.k1.pack(fill=BOTH, expand=1)
+        self.k1 = tk.PanedWindow(self.master, height=700, width=900, orient=tk.VERTICAL)
+        self.k1.pack(fill=tk.BOTH, expand=1)
 
         # Title
-        self.title = PanedWindow(self.k1)
+        self.title = tk.PanedWindow(self.k1)
         self.k1.add(self.title, padx=10, pady=10)
 
-        self.openbutton = Button(self.title,
+        self.openbutton = tk.Button(self.title,
                                  text="Open CSV",
                                  command=self.openfile,
                                  padx=15)
-        self.openbutton.place(anchor=W, x=20, rely=0.25)
+        self.openbutton.place(anchor=tk.W, x=20, rely=0.25)
         image = Image.open(self.resource_path('CCI.png'))
         photo = ImageTk.PhotoImage(image)
       
-        self.panel = Label(self.title, image=photo)
+        self.panel = tk.Label(self.title, image=photo)
         self.panel.image = photo
-        self.panel.pack(side=RIGHT, padx=10)
+        self.panel.pack(side=tk.RIGHT, padx=10)
 
-        Label(self.title, text=self.title_text,
+        tk.Label(self.title, text=self.title_text,
               font=self.titlefont,
               fg="dodgerblue4").pack()
 
         # Panes below buttons
-        self.k3 = PanedWindow(self.k1)
+        self.k3 = tk.PanedWindow(self.k1)
         self.k1.add(self.k3)
-        self.leftpane = PanedWindow(self.k3)
+        self.leftpane = tk.PanedWindow(self.k3)
         self.k3.add(self.leftpane,
                     width=400,
                     padx=30,
                     pady=25,
                     stretch="first")
-        self.separator = PanedWindow(self.k3,
-                                     relief=SUNKEN)
+        self.separator = tk.PanedWindow(self.k3,
+                                     relief=tk.SUNKEN)
         self.k3.add(self.separator,
                     width=2,
                     padx=1,
                     pady=20)
-        self.rightpane = PanedWindow(self.k3)
+        self.rightpane = tk.PanedWindow(self.k3)
         self.k3.add(self.rightpane,
                     width=250,
                     padx=10,
@@ -139,7 +139,7 @@ class MainApplication(Frame):
                     stretch="never")
 
         # Left pane patient note text frame doo-diddly
-        self.ptframe = LabelFrame(self.leftpane,
+        self.ptframe = tk.LabelFrame(self.leftpane,
                                   text="Medical Record",
                                   font=self.boldfont,
                                   padx=0,
@@ -147,50 +147,50 @@ class MainApplication(Frame):
                                   borderwidth=0)
         self.ptframe.pack()
 
-        self.ptnumberframe = Frame(self.ptframe,
+        self.ptnumberframe = tk.Frame(self.ptframe,
                                    padx=0,
                                    pady=0,
                                    borderwidth=0)
         self.ptnumberframe.pack()
 
-        self.ptnumber_A = Label(self.ptnumberframe, text="Patient", fg="dodgerblue4")
+        self.ptnumber_A = tk.Label(self.ptnumberframe, text="Patient", fg="dodgerblue4")
         self.ptnumber_A.grid(row=1, column=0)
-        self.ptnumber = Label(self.ptnumberframe, text=" ")
+        self.ptnumber = tk.Label(self.ptnumberframe, text=" ")
         self.ptnumber.grid(row=1, column=1)
-        self.ptnumber_B = Label(self.ptnumberframe, text="of", fg="dodgerblue4")
+        self.ptnumber_B = tk.Label(self.ptnumberframe, text="of", fg="dodgerblue4")
         self.ptnumber_B.grid(row=1, column=2)
-        self.pttotal = Label(self.ptnumberframe, text=" ")
+        self.pttotal = tk.Label(self.ptnumberframe, text=" ")
         self.pttotal.grid(row=1, column=3)
 
-        self.ptframeinfo = Frame(self.ptframe,
+        self.ptframeinfo = tk.Frame(self.ptframe,
                                  padx=0,
                                  pady=3,
                                  borderwidth=0)
         self.ptframeinfo.pack()
         self.ptframeinfo.columnconfigure(1, minsize=300)
 
-        self.phAdm_ = Label(self.ptframeinfo, text="Hospital Admission ID:", fg="dodgerblue4")
-        self.phAdm_.grid(row=2, column=0, sticky=E)
-        self.pthAdm = Label(self.ptframeinfo, text=" ", font=self.h3font)
-        self.pthAdm.grid(row=2, column=1, sticky=W)
+        self.phAdm_ = tk.Label(self.ptframeinfo, text="Hospital Admission ID:", fg="dodgerblue4")
+        self.phAdm_.grid(row=2, column=0, sticky=tk.E)
+        self.pthAdm = tk.Label(self.ptframeinfo, text=" ", font=self.h3font)
+        self.pthAdm.grid(row=2, column=1, sticky=tk.W)
 
-        self.ptnotetype_ = Label(self.ptframeinfo, text="Note Type:", fg="dodgerblue4")
-        self.ptnotetype_.grid(row=3, column=0, sticky=E)
-        self.ptnotetype = Label(self.ptframeinfo, text=" ", font=self.h3font)
-        self.ptnotetype.grid(row=3, column=1, sticky=W)
+        self.ptnotetype_ = tk.Label(self.ptframeinfo, text="Note Type:", fg="dodgerblue4")
+        self.ptnotetype_.grid(row=3, column=0, sticky=tk.E)
+        self.ptnotetype = tk.Label(self.ptframeinfo, text=" ", font=self.h3font)
+        self.ptnotetype.grid(row=3, column=1, sticky=tk.W)
 
         # Incrementer buttons
-        self.buttonframe = Frame(self.ptframe)
+        self.buttonframe = tk.Frame(self.ptframe)
         self.buttonframe.pack()
-        self.buttonframe.place(relx=0.97, anchor=NE)
+        self.buttonframe.place(relx=0.97, anchor=tk.NE)
         # Back Button
-        self.button1 = Button(self.buttonframe,
+        self.button1 = tk.Button(self.buttonframe,
                               text='Back',
                               width=6,
                               command=lambda: self.crane(-1, self.results_filename))  # Argument is -1, decrement
         self.button1.grid(row=0, column=0, padx=2, pady=2)
         # Next Button
-        self.button2 = Button(self.buttonframe,
+        self.button2 = tk.Button(self.buttonframe,
                               text='Next',
                               width=6,
                               command=lambda: self.crane(1, self.results_filename))  # Argument is 1, increment
@@ -198,12 +198,12 @@ class MainApplication(Frame):
 
         # https://stackoverflow.com/questions/21873195/readonly-tkinter-text-widget
         self.pttext = ScrolledText(self.ptframe, font=self.textfont)
-        self.pttext.pack(side=BOTTOM)
-        self.pttext.delete(1.0, END)
-        self.pttext.config(state=DISABLED)
+        self.pttext.pack(side=tk.BOTTOM)
+        self.pttext.delete(1.0, tk.END)
+        self.pttext.config(state=tk.DISABLED)
         self.pttext.bind("<1>", lambda event: self.pttext.focus_set())
 
-        self.checkframe = LabelFrame(self.rightpane, text="Indicators",
+        self.checkframe = tk.LabelFrame(self.rightpane, text="Indicators",
                                      font=self.boldfont,
                                      padx=10,
                                      pady=0,

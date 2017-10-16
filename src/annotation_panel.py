@@ -1,21 +1,19 @@
 import csv
-import numpy as np
+from numpy import NaN, isnan
 import os
 import pandas as pd
-from ScrolledText import ScrolledText
-import sys
 import time
 import tkFont
 import tkFileDialog
-from Tkinter import *
 import tkMessageBox
+import Tkinter as tk
 
 
-class AnnotationPanel(Frame):
+class AnnotationPanel(tk.Frame):
     def __init__(self, master, checkframe, textbox_labels, checkbox_labels):
         self.master = master
         self.checkframe = checkframe
-        Frame.__init__(self, self.master)
+        tk.Frame.__init__(self, self.master)
         self.textboxes = {}
         self.textbox_labels = textbox_labels
         self.checkbox_labels = checkbox_labels
@@ -36,26 +34,26 @@ class AnnotationPanel(Frame):
             cehckbox = self.create_checkbox(item)
 
     def create_checkbox(self, label):
-        checkbox_val = IntVar()
+        checkbox_val = tk.IntVar()
         checkbox_val.set(self.indicator_values[label])
         self.indicator_values[label] = checkbox_val
-        l = Checkbutton(self.checkframe,
+        l = tk.Checkbutton(self.checkframe,
                         text=label,
                         variable=checkbox_val,
                         onvalue=1,
                         offvalue=0,
                         height=1,
                         pady=5,
-                        justify=LEFT)
-        l.pack(anchor=W)
+                        justify=tk.LEFT)
+        l.pack(anchor=tk.W)
         return l
 
     def create_textbox(self, label, checkbox):
-        entry_text = StringVar()
+        entry_text = tk.StringVar()
         original_text = label + " Text"
         entry_text.set(original_text)
-        entry = Entry(self.checkframe, width=30, textvariable=entry_text)
-        entry.pack(anchor=W, pady=5)
+        entry = tk.Entry(self.checkframe, width=30, textvariable=entry_text)
+        entry.pack(anchor=tk.W, pady=5)
         entry.bind("<BackSpace>", lambda event: self.handle_backspace(event, entry_text, checkbox, original_text))
         entry.bind("<Key>", lambda event: self.handle_key(event, entry_text, checkbox))
         entry.bind("<Button-1>", lambda event: self.clear_entry(event, entry, entry_text, checkbox, original_text))
@@ -72,7 +70,7 @@ class AnnotationPanel(Frame):
 
     def clear_entry(self, event, entry, entry_text, checkbox, original_text):
         if entry_text.get() == original_text:
-            entry.delete(0,END)
+            entry.delete(0,tk.END)
     
     ### Results file generation
     def save_annotations(self, data_df, row_index, results_filename):
@@ -126,9 +124,9 @@ class AnnotationPanel(Frame):
                     return None
                 end_index = start_index + len(cleaned_annotation)
             else:
-                results[item + " Text"] = np.NaN
-                start_index = np.NaN
-                end_index = np.NaN
+                results[item + " Text"] = NaN
+                start_index = NaN
+                end_index = NaN
 
             results[item + ':start'] = start_index
             results[item + ':end'] = end_index
@@ -137,7 +135,7 @@ class AnnotationPanel(Frame):
             results[item] = self.indicator_values[item].get()
         
         if 'ISERROR' in results:
-            if np.isnan(results['ISERROR']):
+            if isnan(results['ISERROR']):
                 results['ISERROR'] = 0
         results['STAMP'] = str(time.asctime(time.localtime(time.time())))
         return results

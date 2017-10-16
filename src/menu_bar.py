@@ -1,34 +1,24 @@
-import csv
-import numpy as np
-import os
-import pandas as pd
-from ScrolledText import ScrolledText
-import sys
-import time
-import tkFont
-import tkFileDialog
-from Tkinter import *
+import Tkinter as tk
 
-
-class MenuBar(Menu):
+class MenuBar(tk.Menu):
     def __init__(self, master):
-        Menu.__init__(self, master)
-        filemenu = Menu(self, tearoff=0)
+        tk.Menu.__init__(self, master)
+        filemenu = tk.Menu(self, tearoff=0)
         helpmenu = Help(self)
         self.add_cascade(label="File", menu=filemenu)
         self.add_cascade(label="Help", menu=helpmenu)
 
-class Help(Menu):
+class Help(tk.Menu):
     def __init__(self, master):
-        Menu.__init__(self, master, tearoff=0)
+        tk.Menu.__init__(self, master, tearoff=0)
         self.add_command(label="About", command=self.about)
         self.add_command(label="Guidelines", command=self.info)
         
     def about(self):
-        aboutpop = Toplevel()
+        aboutpop = tk.Toplevel()
         aboutpop.title("About Us")
         aboutpop.geometry('700x450')
-        aboutfr = Frame(aboutpop)
+        aboutfr = tk.Frame(aboutpop)
         aboutfr.pack()
         Label(aboutfr, text='Important Information: This code was developed for use in Python versions >2.5 and < 3.0\n '
                             'with the use of the base Tkinter library and Tcl/Tk version 8.5.9\n \n'
