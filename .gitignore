@@ -1,3 +1,4 @@
 *.pyc
 *.csv
 src/build/*
+sr/dist/*
