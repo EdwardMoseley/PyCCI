@@ -41,6 +41,10 @@ To contact the admin of this repo, please email:
 Etmoseley@yahoo.com
 
 Acknowledgements:
-Kai-ou Tang for front end advise and coding.
-William Labadie Moseley for development.
+
+__Isabel Chien__ for a complete refactoring and contributions toward an executable/application version of the software.
+
+__Kai-ou Tang__ for front end advice, coding, and CCI logo.
+
+__William Labadie Moseley__ for coding.
 
