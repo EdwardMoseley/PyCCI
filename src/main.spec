@@ -1,8 +1,7 @@
+
 # -*- mode: python -*-
 
 block_cipher = None
-
-
 a = Analysis(['main.py'],
              pathex=['/Users/IsabelChien/Documents/HST.953/PyCCI/src'],
              binaries=[],
@@ -14,6 +13,8 @@ a = Analysis(['main.py'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher)
+
+a.datas += [ ('CCI.png', 'CCI.png', 'DATA')]
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
@@ -31,3 +32,4 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                name='main')
+
