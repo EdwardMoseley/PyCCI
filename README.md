@@ -41,6 +41,9 @@ To contact the admin of this repo, please email:
 Etmoseley@yahoo.com
 
 Acknowledgements:
-Kai-ou Tang for front end advise and coding.
+Isabel Chien for a complete refactoring and contributions toward an executable/application version of the software.
+
+Kai-ou Tang for front end advice and coding.
+
 William Labadie Moseley for development.
 
