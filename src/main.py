@@ -7,8 +7,8 @@ import Tkinter as tk
 
 def main(): 
 	title = "Palliative Care"
-	textbox_labels = ["Care Preferences","Family Meetings", "Code Status Limitations", "Palliative Care Involvement"]
-	checkbox_labels = ["Ambiguous", "None"]
+	textbox_labels = ["Patient and Family Care Preferences","Communication with Family", "Code Status Limitations", "Palliative Care Team Involvement", "Ambiguous"]
+	checkbox_labels = ["None"]
 	root = tk.Tk()
 	MainApplication(root, title, textbox_labels, checkbox_labels).pack(side="top", fill="both", expand=True)
 	menubar = MenuBar(root)
