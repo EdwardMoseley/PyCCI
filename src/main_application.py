@@ -13,7 +13,7 @@ from PIL import ImageTk, Image
 
 
 class MainApplication(tk.Frame):
-    def __init__(self, master, title, textbox_labels, checkbox_labels):
+    def __init__(self, master, title, textbox_labels, comment_boxes, checkbox_labels):
         self.master = master
         self.title = title
         self.master.title(self.title + " PyCCI")
@@ -28,7 +28,7 @@ class MainApplication(tk.Frame):
         self.define_fonts()
         self.create_body()
 
-        self.annotation_panel = AnnotationPanel(master, self.checkframe, textbox_labels, checkbox_labels)
+        self.annotation_panel = AnnotationPanel(master, self.checkframe, textbox_labels, comment_boxes, checkbox_labels)
         self.annotation_panel.pack()
 
     def define_fonts(self):

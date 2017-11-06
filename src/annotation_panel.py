@@ -10,13 +10,15 @@ import Tkinter as tk
 
 
 class AnnotationPanel(tk.Frame):
-    def __init__(self, master, checkframe, textbox_labels, checkbox_labels):
+    def __init__(self, master, checkframe, textbox_labels, comment_boxes, checkbox_labels):
         self.master = master
         self.checkframe = checkframe
         tk.Frame.__init__(self, self.master)
-        self.textboxes = {}
         self.textbox_labels = textbox_labels
+        self.comment_boxes = comment_boxes
         self.checkbox_labels = checkbox_labels
+        self.textboxes = {}
+        self.comments = {}
         self.indicator_values = {label: 0 for label in self.textbox_labels + self.checkbox_labels}
         self.create_annotation_items()
 
@@ -29,9 +31,19 @@ class AnnotationPanel(tk.Frame):
         for item in self.textbox_labels:
             checkbox = self.create_checkbox(item)
             self.create_textbox(item, checkbox)
-
+        for item in self.comment_boxes:
+            self.create_comment_box(item)
         for item in self.checkbox_labels:
             cehckbox = self.create_checkbox(item)
+
+    def create_comment_box(self, label):
+        entry_text = tk.StringVar()
+        original_text = label + " Comments"
+        entry_text.set(original_text)
+        entry = tk.Entry(self.checkframe, width=30, textvariable=entry_text)
+        entry.pack(anchor=tk.W, pady=5)
+        entry.bind("<Button-1>", lambda event: self.clear_entry(event, entry, entry_text, original_text))
+        self.comments[label] = entry_text
 
     def create_checkbox(self, label):
         checkbox_val = tk.IntVar()
@@ -56,7 +68,7 @@ class AnnotationPanel(tk.Frame):
         entry.pack(anchor=tk.W, pady=5)
         entry.bind("<BackSpace>", lambda event: self.handle_backspace(event, entry_text, checkbox, original_text))
         entry.bind("<Key>", lambda event: self.handle_key(event, entry_text, checkbox))
-        entry.bind("<Button-1>", lambda event: self.clear_entry(event, entry, entry_text, checkbox, original_text))
+        entry.bind("<Button-1>", lambda event: self.clear_entry(event, entry, entry_text, original_text))
         self.textboxes[label] = entry_text
 
     def handle_backspace(self, event, entry_text, checkbox, original_text):
@@ -68,7 +80,7 @@ class AnnotationPanel(tk.Frame):
         if len(event.char) > 0:
             checkbox.select()
 
-    def clear_entry(self, event, entry, entry_text, checkbox, original_text):
+    def clear_entry(self, event, entry, entry_text, original_text):
         if entry_text.get() == original_text:
             entry.delete(0,tk.END)
     
@@ -104,7 +116,7 @@ class AnnotationPanel(tk.Frame):
         for item in list(data_df.columns.values):
             results[item] = data_df[item].iloc[row_index]
 
-        for i, item in enumerate(self.textbox_labels):
+        for item in self.textbox_labels:
             results[item] = self.indicator_values[item].get()
             if results[item] == 1:
                 # Clean up the annotated text phrase; remove all white space characters and replace
@@ -131,6 +143,12 @@ class AnnotationPanel(tk.Frame):
             results[item + ':start'] = start_index
             results[item + ':end'] = end_index
 
+        for item in self.comment_boxes:
+            if self.comments[item].get() != item + " Comments":
+                results[item + " Comments"] = self.comments[item].get()
+            else:
+                results[item + " Comments"] = NaN
+
         for item in self.checkbox_labels:
             results[item] = self.indicator_values[item].get()
         
@@ -149,7 +167,8 @@ class AnnotationPanel(tk.Frame):
             header.append(item + " Text")
             header.append(item + ':start')
             header.append(item + ":end")
-
+        for item in self.comment_boxes:
+            header.append(item + " Comments")
         for item in self.checkbox_labels:
             header.append(item)
         header.append('STAMP')
@@ -158,5 +177,7 @@ class AnnotationPanel(tk.Frame):
     def reset_buttons(self):
         for key, val in self.textboxes.iteritems():
             val.set(key + " Text")
+        for key, val in self.comments.iteritems():
+            val.set(key + " Comments")
         for machine in self.textbox_labels + self.checkbox_labels:
             self.indicator_values[machine].set(0)
