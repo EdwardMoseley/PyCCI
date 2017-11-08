@@ -7,7 +7,7 @@ import Tkinter as tk
 
 def main(): 
 	title = "Palliative Care"
-	textbox_labels = ["Patient and Family Care Preferences","Communication with Family", "Code Status Limitations", "Palliative Care Team Involvement", "Ambiguous"]
+	textbox_labels = ["Patient and Family Care Preferences","Communication with Family", "Full Code Status", "Code Status Limitations", "Palliative Care Team Involvement", "Ambiguous"]
 	comment_boxes = ["Ambiguous"]
 	checkbox_labels = ["None"]
 	root = tk.Tk()

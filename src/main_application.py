@@ -48,7 +48,11 @@ class MainApplication(tk.Frame):
         self.results_filename = file[:-4] + "Results.csv"
         if os.path.isfile(self.results_filename):
             results_df = pd.read_csv(self.results_filename)
-            self.crane(results_df.shape[0], self.results_filename)
+            last_row_id = results_df.iloc[-1]['ROW_ID']
+            crane_to = self.data_df[self.data_df['ROW_ID'] == last_row_id].index.tolist()[0]
+            # Get ROW_ID of last row
+            # Find iloc of ROW_ID in data_df. Crane to this position.
+            self.crane(crane_to + 1, self.results_filename)
         else:
             self.crane(0, self.results_filename)
 
@@ -57,15 +61,18 @@ class MainApplication(tk.Frame):
             return os.path.join(sys._MEIPASS, relative_path)
         return os.path.join(os.path.abspath("."), relative_path)
 
+    def save_annotations(self, results_filename):
+        return self.annotation_panel.save_annotations(self.data_df, self.current_row_index, results_filename)
+
     def crane(self, delta, results_filename):
         '''
         Called whenever you press back or next
         '''
-        num_notes = self.data_df.shape[0]
-        is_saved = self.annotation_panel.save_annotations(self.data_df, self.current_row_index, results_filename)
+        is_saved = self.save_annotations(results_filename)
         if not is_saved:
             return
 
+        num_notes = self.data_df.shape[0]
         self.current_row_index += delta
         if self.current_row_index < 1:
             self.current_row_index = 0
@@ -184,24 +191,33 @@ class MainApplication(tk.Frame):
         self.buttonframe.pack()
         self.buttonframe.place(relx=0.97, anchor=tk.NE)
         # Back Button
-        self.button1 = tk.Button(self.buttonframe,
+        self.back_button = tk.Button(self.buttonframe,
                               text='Back',
                               width=6,
                               command=lambda: self.crane(-1, self.results_filename))  # Argument is -1, decrement
-        self.button1.grid(row=0, column=0, padx=2, pady=2)
+        self.back_button.grid(row=0, column=0, padx=2, pady=0)
         # Next Button
-        self.button2 = tk.Button(self.buttonframe,
+        self.next_button = tk.Button(self.buttonframe,
                               text='Next',
                               width=6,
                               command=lambda: self.crane(1, self.results_filename))  # Argument is 1, increment
-        self.button2.grid(row=0, column=2, padx=2, pady=2)
+        self.next_button.grid(row=0, column=2, padx=2, pady=0)
 
         # https://stackoverflow.com/questions/21873195/readonly-tkinter-text-widget
         self.pttext = ScrolledText(self.ptframe, font=self.textfont)
-        self.pttext.pack(side=tk.BOTTOM)
+        self.pttext.pack()
         self.pttext.delete(1.0, tk.END)
         self.pttext.config(state=tk.DISABLED)
         self.pttext.bind("<1>", lambda event: self.pttext.focus_set())
+
+        # Below buttons
+        self.submit_frame = tk.Frame(self.ptframe)
+        self.submit_frame.pack(side=tk.RIGHT)
+        self.submit_button = tk.Button(self.submit_frame,
+                                       text='Save Annotation',
+                                       width=10,
+                                       command=lambda: self.save_annotations(self.results_filename))
+        self.submit_button.grid(row=0, column=0, padx=2, pady=10)
 
         self.checkframe = tk.LabelFrame(self.rightpane, text="Indicators",
                                      font=self.boldfont,
