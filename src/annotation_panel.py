@@ -14,6 +14,8 @@ class AnnotationPanel(tk.Frame):
         self.master = master
         self.checkframe = checkframe
         tk.Frame.__init__(self, self.master)
+        self.textfont = tkFont.Font(family='Helvetica', size=15)
+        self.smallfont = tkFont.Font(family='Helvetica', size=12)
         self.textbox_labels = textbox_labels
         self.comment_boxes = comment_boxes
         self.checkbox_labels = checkbox_labels
@@ -29,27 +31,33 @@ class AnnotationPanel(tk.Frame):
         The part of the gui that covers annotations
         '''
         for item in self.textbox_labels:
-            checkbox = self.create_checkbox(item)
-            self.create_textbox(item, checkbox)
+            checkbox, checkbox_val = self.create_checkbox(item)
+            self.create_textbox(item, checkbox, checkbox_val)
         for item in self.comment_boxes:
             self.create_comment_box(item)
         for item in self.checkbox_labels:
             cehckbox = self.create_checkbox(item)
 
     def create_comment_box(self, label):
-        entry_text = tk.StringVar()
         original_text = label + " Comments"
-        entry_text.set(original_text)
-        entry = tk.Entry(self.checkframe, width=30, textvariable=entry_text)
-        entry.pack(anchor=tk.W, pady=5)
-        entry.bind("<Button-1>", lambda event: self.clear_entry(event, entry, entry_text, original_text))
-        self.comments[label] = entry_text
+        text_frame = tk.Frame(self.checkframe, borderwidth=1, relief="sunken")
+        entry = tk.Text(wrap="word", background="white", 
+                            borderwidth=0, highlightthickness=0, height=2)
+        entry.insert(tk.END, original_text)
+        vsb = tk.Scrollbar(orient="vertical", borderwidth=1,
+                                command=entry.yview)
+        entry.configure(yscrollcommand=vsb.set, font=self.smallfont, padx=3, pady=3)
+        vsb.pack(in_=text_frame,side="right", fill="y", expand=False)
+        entry.pack(in_=text_frame, side="left", fill="both", expand=True)
+        text_frame.pack(anchor=tk.W, fill=tk.X, pady=5, padx=(0,5))
+        entry.bind("<Button-1>", lambda event: self.clear_entry(event, entry, original_text))
+        self.comments[label] = entry
 
     def create_checkbox(self, label):
         checkbox_val = tk.IntVar()
         checkbox_val.set(self.indicator_values[label])
         self.indicator_values[label] = checkbox_val
-        l = tk.Checkbutton(self.checkframe,
+        checkbox = tk.Checkbutton(self.checkframe,
                         text=label,
                         variable=checkbox_val,
                         onvalue=1,
@@ -57,95 +65,102 @@ class AnnotationPanel(tk.Frame):
                         height=1,
                         pady=5,
                         justify=tk.LEFT)
-        l.pack(anchor=tk.W)
-        return l
+        checkbox.pack(anchor=tk.W)
+        return checkbox, checkbox_val
 
-    def create_textbox(self, label, checkbox):
-        entry_text = tk.StringVar()
+    def create_textbox(self, label, checkbox, checkbox_val):
         original_text = label + " Text"
-        entry_text.set(original_text)
-        entry = tk.Entry(self.checkframe, width=30, textvariable=entry_text)
-        entry.pack(anchor=tk.W, pady=5)
-        entry.bind("<BackSpace>", lambda event: self.handle_backspace(event, entry_text, checkbox, original_text))
-        entry.bind("<Key>", lambda event: self.handle_key(event, entry_text, checkbox))
-        entry.bind("<Button-1>", lambda event: self.clear_entry(event, entry, entry_text, original_text))
-        self.textboxes[label] = entry_text
+        text_frame = tk.Frame(self.checkframe, borderwidth=1, relief="sunken")
+        entry = tk.Text(wrap="word", background="white", 
+                            borderwidth=0, highlightthickness=0, height=2)
+        entry.insert(tk.END, original_text)
+        vsb = tk.Scrollbar(orient="vertical", borderwidth=1,
+                                command=entry.yview)
+        entry.configure(yscrollcommand=vsb.set, font=self.smallfont, padx=3, pady=3)
+        vsb.pack(in_=text_frame,side="right", fill="y", expand=False)
+        entry.pack(in_=text_frame, side="left", fill="both", expand=True)
+        text_frame.pack(anchor=tk.W, fill=tk.X, pady=5, padx=(0,5))
 
-    def handle_backspace(self, event, entry_text, checkbox, original_text):
-        if len(entry_text.get()) < 2:
+        checkbox.bind("<Button-1>", lambda event: self.clear_entry_from_check(event, entry, checkbox_val, original_text))
+        entry.bind("<BackSpace>", lambda event: self.handle_backspace(event, entry, checkbox, original_text))
+        entry.bind("<Key>", lambda event: self.handle_key(event, checkbox))
+        entry.bind("<Button-1>", lambda event: self.clear_entry(event, entry, original_text))
+        self.textboxes[label] = entry
+
+    def handle_backspace(self, event, entry, checkbox, original_text):
+        if len(entry.get(1.0, 'end-1c')) < 2:
             checkbox.deselect()
-            entry_text.set(original_text)
 
-    def handle_key(self, event, entry_text, checkbox):
+    def handle_key(self, event, checkbox):
         if len(event.char) > 0:
             checkbox.select()
 
-    def clear_entry(self, event, entry, entry_text, original_text):
-        if entry_text.get() == original_text:
-            entry.delete(0,tk.END)
+    def clear_entry(self, event, entry, original_text):
+        if entry.get(1.0, 'end-1c') == original_text:
+            entry.delete(1.0, tk.END)
+
+    def clear_entry_from_check(self, event, entry, checkbox_val, original_text):
+        if checkbox_val.get() == 1:
+            entry.delete(1.0, tk.END)
     
     ### Results file generation
     def save_annotations(self, data_df, row_index, results_filename):
         '''
         save_annotations() is called every time "Next" or "Back" are pressed
-        save_annotations() will create a results file if one does not exist
+        save_annotations() will create a results file if one does not exist if 
+        an annotation is made
         save_annotations() will pass if no indicators are ticked
         save_annotations() will write to results file if any indicator is ticked
         '''
         # If the file does not exist, create it and add the header
-        data_labels = list(data_df.columns.values)
-        if not os.path.isfile(results_filename):
-            with open(results_filename, 'w') as csvfile:
-                datawriter = csv.writer(csvfile, delimiter=',')
-                datawriter.writerow(self.generate_header(data_labels))
-
-        else:
-            indicator_ints = [val.get() for val in self.indicator_values.values()]
-            if sum(indicator_ints) != 0:
-                results_df = pd.read_csv(results_filename, header=0, index_col=0)
-                results_dict = self.generate_results_dict(data_df, row_index)
-                if results_dict == None:
-                    return False
-                results_df = results_df.append(results_dict, ignore_index=True)
-                results_df.to_csv(results_filename)
+        data_labels = self.generate_header(list(data_df.columns.values))
+        indicator_ints = [val.get() for val in self.indicator_values.values()]
+        if sum(indicator_ints) != 0:
+            results_df = self.generate_results_dict(data_df, row_index, data_labels)
+            if results_df is None:
+                return False
+            if os.path.isfile(results_filename):
+                original_results_df = pd.read_csv(results_filename, header=0, index_col=0)
+                results_df = pd.concat([original_results_df, results_df], ignore_index=True)
+            results_df = results_df[data_labels]
+            results_df.to_csv(results_filename)
         self.reset_buttons()
         return True
 
-    def generate_results_dict(self, data_df, row_index):
+    def _clean_text(text):
+        cleaned = str(text.replace('\r\r', '\n').replace('\r', ''))
+        cleaned = re.sub(r'\n+', '\n', cleaned)
+        cleaned = re.sub(r' +', ' ', cleaned)
+        cleaned = re.sub(r'\t', ' ', cleaned)
+        return str(cleaned.strip())
+
+    def generate_results_dict(self, data_df, row_index, data_labels):
         results = {}
         for item in list(data_df.columns.values):
-            results[item] = data_df[item].iloc[row_index]
+            if "Unnamed" not in item: 
+                results[item] = data_df[item].iloc[row_index]
 
         for item in self.textbox_labels:
             results[item] = self.indicator_values[item].get()
             if results[item] == 1:
-                # Clean up the annotated text phrase; remove all white space characters and replace
-                # with a single space. If whitespace is on either side, removes that.
-                # Character start:end reflects this matched against a cleaned
-                # version of the original text. However, the saved annotation text phrase is the
-                # uncleaned version.
-                cleaned_annotation = " ".join(self.textboxes[item].get().split())
-                results[item + " Text"] = self.textboxes[item].get()
-                # Find annotated portion in cleaned clinical text.
-                start_index = " ".join(data_df['TEXT'].iloc[row_index].split()).find(cleaned_annotation)
+                # Strip annotation phrase. 
+                annotation = self.textboxes[item].get(1.0, 'end-1c').strip()
+                results[item + " Text"] = str(annotation)
+                # Check that the text is actually in the clinical note (prevent copy errors)
+                start_index = data_df['TEXT'].iloc[row_index].find(annotation)
                 if start_index == -1:
                     tkMessageBox.showerror("Error", "Text in " + item + " textbox is not found in original note.")
                     return None
                 if len(results[item + " Text"]) < 1:
                     tkMessageBox.showerror("Error", "No text in textbox")
                     return None
-                end_index = start_index + len(cleaned_annotation)
             else:
                 results[item + " Text"] = NaN
-                start_index = NaN
-                end_index = NaN
-
-            results[item + ':start'] = start_index
-            results[item + ':end'] = end_index
 
         for item in self.comment_boxes:
-            if self.comments[item].get() != item + " Comments":
-                results[item + " Comments"] = self.comments[item].get()
+            comment_text = self.comments[item].get(1.0, 'end-1c')
+            if comment_text != item + " Comments":
+                results[item + " Comments"] = str(comment_text)
             else:
                 results[item + " Comments"] = NaN
 
@@ -156,17 +171,17 @@ class AnnotationPanel(tk.Frame):
             if isnan(results['ISERROR']):
                 results['ISERROR'] = 0
         results['STAMP'] = str(time.asctime(time.localtime(time.time())))
+        results = pd.DataFrame(results, columns=data_labels, index=[0])
         return results
 
     def generate_header(self, data_labels):
-        header = ['Index'] 
+        header = [] 
         for item in data_labels:
-            header.append(item)
+            if "Unnamed" not in item:
+                header.append(item)
         for item in self.textbox_labels:
             header.append(item)
             header.append(item + " Text")
-            header.append(item + ':start')
-            header.append(item + ":end")
         for item in self.comment_boxes:
             header.append(item + " Comments")
         for item in self.checkbox_labels:
@@ -175,9 +190,11 @@ class AnnotationPanel(tk.Frame):
         return header
 
     def reset_buttons(self):
-        for key, val in self.textboxes.iteritems():
-            val.set(key + " Text")
-        for key, val in self.comments.iteritems():
-            val.set(key + " Comments")
+        for key, entry in self.textboxes.iteritems():
+            entry.delete(1.0,tk.END)
+            entry.insert(tk.END, key + " Text")
+        for key, entry in self.comments.iteritems():
+            entry.delete(1.0,tk.END)
+            entry.insert(tk.END, key + " Comments")
         for machine in self.textbox_labels + self.checkbox_labels:
             self.indicator_values[machine].set(0)
