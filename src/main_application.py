@@ -60,11 +60,14 @@ class MainApplication(tk.Frame):
         self.results_filename = self.file[:-4] + "Results.csv"
         if os.path.isfile(self.results_filename):
             results_df = pd.read_csv(self.results_filename)
-            last_row_id = results_df.iloc[-1]['ROW_ID']
-            crane_to = self.data_df[self.data_df['ROW_ID'] == last_row_id].index.tolist()[0]
             # Get ROW_ID of last row
             # Find iloc of ROW_ID in data_df. Crane to this position.
-            self._change_note(crane_to + 1)
+            if 'ROW_ID' in results_df:
+                last_row_id = results_df.iloc[-1]['ROW_ID']
+                crane_to = self.data_df[self.data_df['ROW_ID'] == last_row_id].index.tolist()[0]
+                self._change_note(crane_to + 1)
+            else:
+                self._change_note(0)
         else:
             self._change_note(0)
 

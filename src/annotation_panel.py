@@ -2,6 +2,7 @@ import csv
 from numpy import NaN, isnan
 import os
 import pandas as pd
+import re
 import time
 import tkFont
 import tkFileDialog
@@ -19,6 +20,7 @@ class AnnotationPanel(tk.Frame):
         self.textbox_labels = textbox_labels
         self.comment_boxes = comment_boxes
         self.checkbox_labels = checkbox_labels
+        self.text_columns = [label + " Text" for label in self.textbox_labels] + [label + " Comments" for label in self.comment_boxes]
         self.textboxes = {}
         self.comments = {}
         self.indicator_values = {label: 0 for label in self.textbox_labels + self.checkbox_labels}
@@ -121,13 +123,19 @@ class AnnotationPanel(tk.Frame):
                 return False
             if os.path.isfile(results_filename):
                 original_results_df = pd.read_csv(results_filename, header=0, index_col=0)
+                # Clean results_df
+                for label in self.text_columns:
+                    if label in original_results_df:
+                        original_results_df[label] = original_results_df[label].map(lambda text: self._clean_text(text))
                 results_df = pd.concat([original_results_df, results_df], ignore_index=True)
             results_df = results_df[data_labels]
             results_df.to_csv(results_filename)
         self.reset_buttons()
         return True
 
-    def _clean_text(text):
+    def _clean_text(self, text):
+        if type(text) == float:
+            return text
         cleaned = str(text.replace('\r\r', '\n').replace('\r', ''))
         cleaned = re.sub(r'\n+', '\n', cleaned)
         cleaned = re.sub(r' +', ' ', cleaned)
