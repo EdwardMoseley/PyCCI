@@ -363,10 +363,9 @@ class MainApplication(tk.Frame):
         self.bottom_section.pack(fill=tk.BOTH, expand=True)
         self.main_window.add(self.bottom_section)
         self.leftpane = tk.PanedWindow(self.bottom_section)
-        self.leftpane.pack(fill=tk.BOTH, expand=True)
         self.bottom_section.add(self.leftpane,
-                    width=700,
-                    padx=30)
+                    width=600,
+                    padx=20)
         self.separator = tk.PanedWindow(self.bottom_section,
                                      relief=tk.SUNKEN)
         self.bottom_section.add(self.separator,
@@ -374,10 +373,8 @@ class MainApplication(tk.Frame):
                     padx=5,
                     pady=30)
         self.rightpane = tk.PanedWindow(self.bottom_section)
-        self.rightpane.pack(fill=tk.BOTH, expand=True)
         self.bottom_section.add(self.rightpane, width=400)
 
-        # Left pane patient note text frame doo-diddly
         self.ptframe = tk.LabelFrame(self.leftpane,
                                   text="Medical Record",
                                   font=self.boldfont,
@@ -455,12 +452,27 @@ class MainApplication(tk.Frame):
                                        command=self.save_annotations)
         self.submit_button.grid(row=0, column=0, padx=2, pady=10)
 
-        self.checkframe = tk.LabelFrame(self.rightpane, text="Indicators",
+        # Create canvas with scrollbar
+        canvas = tk.Canvas(self.rightpane)
+        scrollbar = tk.Scrollbar(self.rightpane, orient='vertical', command=canvas.yview)
+        canvas.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side=tk.RIGHT, fill='y')
+        canvas.pack(side=tk.LEFT, fill='both', expand=True)
+        
+        # put frame in canvas
+
+        self.checkframe = tk.LabelFrame(canvas, text="Indicators",
                                      font=self.boldfont,
                                      padx=10,
                                      pady=20,
                                      borderwidth=0)
-        self.checkframe.pack(fill=tk.BOTH, expand=True)
+        canvas.create_window((0,0), window=self.checkframe, anchor='nw', tags='self.checkframe')
+        self.checkframe.bind('<Configure>', lambda event: self.on_configure(event,canvas))
+
+
+        #self.checkframe.pack(fill=tk.BOTH, expand=True)
         self._create_display_values(0, 1, "NA", "NA", "Please use the ''Open CSV'' button to open the .csv file provided to you, "
                            + "for example:\n'dischargeSummaries29JUN16.csv'\n"
                            + "This will create a 'results' file within the same directory.")
+    def on_configure(self, event, canvas):
+        canvas.configure(scrollregion=canvas.bbox('all'))
