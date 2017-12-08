@@ -1,7 +1,0 @@
-processed 295184 tokens with 2416 phrases; found: 2656 phrases; correct: 1696.
-accuracy:  99.59%; precision:  63.86%; recall:  70.20%; FB1:  66.88
-              CAR: precision:  77.15%; recall:  72.82%; FB1:  74.92  639
-              COD: precision:  77.78%; recall:   2.10%; FB1:   4.08  9
-              FAM: precision:  63.41%; recall:  80.79%; FB1:  71.06  902
-              LIM: precision:  56.02%; recall:  94.75%; FB1:  70.41  1096
-              PAL: precision: 100.00%; recall:  20.41%; FB1:  33.90  10
