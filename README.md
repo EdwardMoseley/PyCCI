@@ -1,5 +1,7 @@
 # PyCCI
 
+### Requires Updating
+
 Save CCIv3.py to your desktop.
 
 You have to use your terminal to run the program. You can use command+space to open spotlight, and there type in "terminal" and hit enter.
